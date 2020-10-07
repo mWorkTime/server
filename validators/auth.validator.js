@@ -16,3 +16,12 @@ exports.registerValidator = [
     .isLength({ min: 6 })
     .withMessage('Пароль должен содержать 6 цифр, символов или более')
 ]
+
+exports.loginValidator =  [
+  check('email')
+    .isEmail()
+    .withMessage('Введен неверный E-mail'),
+  check('password')
+    .isLength({ min: 6 })
+    .withMessage('Пароль должен содержать 6 цифр, символов или более')
+]
