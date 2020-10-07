@@ -52,3 +52,10 @@ exports.login = (req, res) => {
       })
     })
 }
+
+exports.logout = (req, res) => {
+  res.clearCookie('token')
+  res.status(200).json({
+    success: 'Вы вышли из учётной записи!'
+  })
+}
