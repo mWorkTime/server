@@ -7,6 +7,9 @@ const debug = require('debug')
 const databaseConnect = require('./utils/database-connect')
 require('dotenv').config()
 
+// bring routes
+const authRoutes = require('./routes/auth.route')
+
 // app
 const app = express()
 
@@ -22,6 +25,8 @@ app.use(cookieParser())
 if (process.env.NODE_ENV === 'development') {
   app.use(cors({ origin: `${process.env.CLIENT_URL}` }))
 }
+
+app.use('/auth', authRoutes)
 
 // port
 const port = process.env.PORT || 5000
