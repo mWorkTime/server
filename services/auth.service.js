@@ -5,6 +5,7 @@ const User = require('../models/user.model')
 const Organization = require('../models/organization.model')
 const Token = require('../models/token.model')
 const registrationMail = require('../emails/registration')
+const { generateToken } = require('../utils/generate-token')
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -26,7 +27,7 @@ exports.saveNewUserAndOrganization = async (req, res) => {
   const codeOrganization = crypto.randomBytes(2).toString('hex')
   const newUser = new User({ name, email, password, username, isOwner: true })
   const newOrganization = new Organization({ name: organization, code: codeOrganization, owner: newUser._id })
-  const token = new Token({ _userId: newUser._id, token: crypto.randomBytes(16).toString('hex') })
+  const token = new Token({ _userId: newUser._id, token: generateToken({ email }, { expiresIn: 86400 }) })
   newUser.organization = newOrganization._id
 
   token.save((err) => {
@@ -41,9 +42,9 @@ exports.saveNewUserAndOrganization = async (req, res) => {
     if (err) return res.status(500).json({ msg: err.message })
   })
 
-  const text = 'Hello ' + name + ',\n\n' + 'Please verify your account by clicking the link: \nhttp:\/\/' + req.headers.host + '\/confirmation\/' + email + '\/' + token.token + '\n\nThank You!\n'
+  const link = `${process.env.CLIENT_URL}/confirm/${token.token}`
 
-  await transporter.sendMail(registrationMail(email, text), (err) => {
+  await transporter.sendMail(registrationMail(email, link), (err) => {
     if (err) {
       return res.status(500).json({ msg: 'Technical Issue!, Please click on resend for verify your Email.' })
     }
@@ -51,3 +52,46 @@ exports.saveNewUserAndOrganization = async (req, res) => {
 
   return res.status(200).json({ success: 'Регистрация прошла успешно. На Ваш электронный адрес отправлено письмо для подтверждения аккаунта!' })
 }
+
+/**
+ * getUserAndLogin. Looking for user in DB and return data for authorized him.
+ * @param {string} email
+ * @param {string} password
+ * @param {number} expiresTime
+ * @param {object} res
+ * @return {*}
+ */
+exports.getUserAndLogin = (email, password, expiresTime, res) => {
+  return User.findOne({ email }).populate('organization')
+    .exec((err, user) => {
+      if (err) {
+        return res.status(500).json({ msg: err.message })
+      } else if (!user) {
+        return res.status(400).json({ error: 'Адрес электронной почты не связан ни с одной учетной записью. Пожалуйста, проверьте и попробуйте еще раз!' })
+      } else if (!user.authenticate(password)) {
+        return res.status(400).json({ error: 'Введён неправильный пароль!' })
+      } else if (!user.isVerified) {
+        return res.status(400).json({ error: 'Ваша почта не была подтверждена. Пожалуйста сделайте это!' })
+      }
+
+      const { _id, username, isOwner, name } = user
+
+      const token = generateToken({
+        _id,
+        username,
+        isOwner,
+        orgName: user.organization.name,
+        orgCode: user.organization.code
+      }, { expiresIn: expiresTime })
+      res.cookie('token', token, { expiresIn: expiresTime })
+
+      res.status(200).json({
+        token,
+        user: { username, name, isOwner },
+        organization: { name: user.organization.name, code: user.organization.code },
+        exp: Math.floor(Date.now() / 1000 + expiresTime),
+        success: 'Вы успешно авторизованы!'
+      })
+    })
+}
+

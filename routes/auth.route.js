@@ -12,5 +12,4 @@ router.post('/register',registerValidator, runValidation, register)
 router.post('/login', loginValidator, runValidation, login)
 router.post('/logout', requireAuth, logout)
 
-
 module.exports = router
