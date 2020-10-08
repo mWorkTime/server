@@ -36,5 +36,5 @@ databaseConnect()
 
 app.listen(port, (err) => {
   if (err) throw err
-  console.log(`> Server ready on http://localhost:${port}`)
+  debug('listening');
 })

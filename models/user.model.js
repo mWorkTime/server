@@ -34,11 +34,8 @@ const userSchema = new Schema({
     required: true,
     default: false
   },
-  role: {
-    type: Number,
-    trim: true,
-    default: 0
-  },
+  role: { type: Number, default: 0 },
+  isVerified: { type: Boolean, default: false },
   salt: String,
   resetPasswordLink: {
     data: String,

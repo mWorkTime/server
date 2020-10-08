@@ -9,14 +9,14 @@ exports.register = async (req, res) => {
     const user = await User.findOne({ email: req.body.email })
 
     if (user) {
-      return res.status(422).json({
+      return res.status(400).json({
         error: `Данный email уже используется!`
       })
     }
 
-    await saveNewUserAndOrganization(req.body, res)
+    await saveNewUserAndOrganization(req, res)
   } catch (err) {
-    return res.status(400).json(err)
+    return res.status(400).json(err.message)
   }
 }
 
@@ -25,11 +25,14 @@ exports.login = (req, res) => {
 
   User.findOne({ email }).populate('organization')
     .exec((err, user) => {
-      if (err || !user) {
-        return res.status(422).json({ error: 'Введён некорректный email или пароль!' })
-      }
-      if (!user.authenticate(password)) {
-        return res.status(422).json({ error: 'Введён некорректный email или пароль!' })
+      if (err) {
+        return res.status(500).send({ msg: err.message })
+      } else if (!user) {
+        return res.status(400).json({ error: 'Адрес электронной почты не связан ни с одной учетной записью. Пожалуйста, проверьте и попробуйте еще раз!' })
+      } else if (!user.authenticate(password)) {
+        return res.status(400).json({ error: 'Введён неправильный пароль!' })
+      } else if (!user.isVerified) {
+        return res.status(400).json({ error: 'Ваша почта не была подтверждена. Пожалуйста сделайте это!' })
       }
 
       const { _id, username, isOwner, name } = user
