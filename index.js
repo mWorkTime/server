@@ -9,6 +9,7 @@ require('dotenv').config()
 
 // bring routes
 const authRoutes = require('./routes/auth.route')
+const confirmRoutes = require('./routes/confirm.route')
 
 // app
 const app = express()
@@ -27,6 +28,7 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 app.use('/auth', authRoutes)
+app.use('/confirm', confirmRoutes)
 
 // port
 const port = process.env.PORT || 5000
@@ -36,5 +38,5 @@ databaseConnect()
 
 app.listen(port, (err) => {
   if (err) throw err
-  debug('listening');
+  debug('listening')
 })
