@@ -24,7 +24,7 @@ exports.verifyEmail = async (token, email, res) => {
   const findToken = await Token.findOne({ token })
 
   if (!findToken) {
-    return res.status(200).json({
+    return res.status(400).json({
       error: 'У ссылки истёк срок жизни. Нажмите на отправить ещё раз и перейдите по ссылке снова!',
       needResend: true,
       needRegister: false
@@ -34,7 +34,7 @@ exports.verifyEmail = async (token, email, res) => {
   const user = await User.findOne({ email })
 
   if (!user) {
-    return res.status(200).json({
+    return res.status(400).json({
       error: 'Пользователь не обнаружен. Пожалуйста, зарегистрируйтесь',
       needRegister: true,
       needResend: false

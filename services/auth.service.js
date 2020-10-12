@@ -27,11 +27,15 @@ exports.saveNewUserAndOrganization = async (req, res) => {
   const codeOrganization = crypto.randomBytes(2).toString('hex')
   const newUser = new User({ name, email, password, username, isOwner: true })
   const newOrganization = new Organization({ name: organization, code: codeOrganization, owner: newUser._id })
-  const token = new Token({ _userId: newUser._id, token: generateToken({ email }, { expiresIn: 86400 }) })
+  const token = new Token({
+    _userId: newUser._id,
+    token: generateToken({ email }, { expiresIn: 86400 }),
+    expireAfterSeconds: 86400
+  })
   newUser.organization = newOrganization._id
 
   token.save((err) => {
-    if (err) return res.status(500).send({ msg: err.message })
+    if (err) return res.status(500).json({ msg: err.message })
   })
 
   newOrganization.save((err) => {
