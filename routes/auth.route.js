@@ -8,8 +8,8 @@ const { runValidation } = require('../middlewares/run-validation.middleware')
 // // validators
 const { registerValidator, loginValidator } = require('../validators/auth.validator')
 
-router.post('/register',registerValidator, runValidation, register)
-router.post('/login', loginValidator, runValidation, login)
-router.post('/logout', requireAuth, logout)
+router.post('/register', registerValidator, runValidation, register)
+  .post('/login', loginValidator, runValidation, login)
+  .post('/logout', requireAuth, logout)
 
 module.exports = router

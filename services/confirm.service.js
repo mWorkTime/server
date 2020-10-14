@@ -25,7 +25,7 @@ exports.verifyEmail = async (token, email, res) => {
 
   if (!findToken) {
     return res.status(400).json({
-      error: 'У ссылки истёк срок жизни. Нажмите на отправить ещё раз и перейдите по ссылке снова!',
+      error: 'У ссылки истёк срок жизни. Нажмите на \"Получить ссылку\" и перейдите по ссылке снова!',
       needResend: true,
       needRegister: false
     })
@@ -67,10 +67,10 @@ exports.generateAndSaveNewConfirmLink = async (email, res) => {
   if (!user) {
     return res.status(400).json({ error: 'Данного пользователя не существует, проверьте правильность ввода поля email!' })
   } else if (user.isVerified) {
-    return res.status(200).json({ success: 'Ваш email уже подтверждён! Войдите в аккаунт!' })
+    return res.status(422).json({ error: 'Ваш email уже подтверждён! Войдите в аккаунт!' })
   }
 
-  const token = new Token({ _userId: user._id, token: generateToken({ email }, 86400) })
+  const token = new Token({ _userId: user._id, token: generateToken({ email }, { expiresIn: 86400 }) })
 
   await token.save((err) => {
     if (err) return res.status(500).json({ msg: err.message })
