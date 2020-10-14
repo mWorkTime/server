@@ -6,6 +6,6 @@ const { resendLinkValidator } = require('../validators/resend-link.validator')
 const { runValidation } = require('../middlewares/run-validation.middleware')
 
 router.post('/email', confirmEmail)
-  .post('/resend/link',resendLinkValidator, runValidation, resendLink)
+  .post('/resend/link', resendLinkValidator, runValidation, resendLink)
 
 module.exports = router
