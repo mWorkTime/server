@@ -78,7 +78,7 @@ exports.getUserAndLogin = (email, password, expiresTime, res) => {
         return res.status(400).json({ error: 'Ваша почта не была подтверждена. Пожалуйста сделайте это!' })
       }
 
-      const { _id, username, isOwner, name } = user
+      const { _id, username, isOwner } = user
 
       const token = generateToken({
         _id,
@@ -91,10 +91,8 @@ exports.getUserAndLogin = (email, password, expiresTime, res) => {
 
       res.status(200).json({
         token,
-        user: { username, name, isOwner },
-        organization: { name: user.organization.name, code: user.organization.code },
-        exp: Math.floor(Date.now() / 1000 + expiresTime),
-        success: 'Вы успешно авторизованы!'
+        user: { username },
+        exp: Math.floor(Date.now() / 1000 + expiresTime)
       })
     })
 }

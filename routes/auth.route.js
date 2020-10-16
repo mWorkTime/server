@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const requireAuth = require('../middlewares/auth.middleware')
+const requireLogin = require('../middlewares/auth.middleware')
 const { register, login, logout } = require('../controllers/auth.controller')
 
 // // validation middleware
@@ -10,6 +10,6 @@ const { registerValidator, loginValidator } = require('../validators/auth.valida
 
 router.post('/register', registerValidator, runValidation, register)
   .post('/login', loginValidator, runValidation, login)
-  .post('/logout', requireAuth, logout)
+  .post('/logout', requireLogin, logout)
 
 module.exports = router

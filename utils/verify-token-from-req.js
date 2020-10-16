@@ -10,7 +10,7 @@ exports.verifyTokenFromReq = (req, res) => {
   const token = req.headers.authorization.split(' ')[1]
 
   if (!token) {
-    return res.status(400).json({ message: 'token not found' })
+    return res.status(400).json({ error: 'token not found' })
   }
 
   const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
@@ -18,7 +18,8 @@ exports.verifyTokenFromReq = (req, res) => {
   return {
     _id: decodedToken._id,
     username: decodedToken.username,
-    isVerified: decodedToken.isVerified
+    isOwner: decodedToken.isOwner,
+    orgCode: decodedToken.orgCode
   }
 }
 
