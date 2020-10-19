@@ -87,7 +87,6 @@ exports.getUserAndLogin = (email, password, expiresTime, res) => {
         orgName: user.organization.name,
         orgCode: user.organization.code
       }, { expiresIn: expiresTime })
-      res.cookie('token', token, { expiresIn: expiresTime })
 
       res.status(200).json({
         token,

@@ -45,7 +45,7 @@ const userSchema = new Schema({
     type: Types.ObjectId,
     ref: 'Organization'
   }
-}, { timestamp: true })
+}, { timestamps: true })
 
 userSchema.virtual('password')
   .set(function (password) {
