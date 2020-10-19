@@ -4,6 +4,7 @@ const nodemailer = require('nodemailer')
 const User = require('../models/user.model')
 const Organization = require('../models/organization.model')
 const Token = require('../models/token.model')
+const BlockList = require('../models/blocklist.model')
 const registrationMail = require('../emails/registration')
 const { generateToken } = require('../utils/generate-token')
 
@@ -95,5 +96,43 @@ exports.getUserAndLogin = (email, password, expiresTime, res) => {
         exp: Math.floor(Date.now() / 1000 + expiresTime)
       })
     })
+}
+
+/**
+ * saveTokenAndSendNewToken. Save token that is came from params to block list, generate new token and send to user.
+ * @param {Object} res
+ * @param {Object} data
+ * @return {*}
+ */
+exports.saveTokenAndSendNewToken = (res, data = {}) => {
+  const { headerToken, decodedToken: { _id, username, isOwner, orgName, orgCode }, expiresTime, refreshTime } = data
+
+  return BlockList.findOne({ token: headerToken }).exec((err, token) => {
+      if (err) {
+        return res.status(500).json({ msg: err.message })
+      } else if (token) {
+        return res.status(422).json({ msg: 'Невозможно обновить токен.' })
+      }
+
+      const oldToken = new BlockList({
+        token: headerToken,
+        expireAfterSeconds: 86400
+      })
+
+      oldToken.save((err) => {
+        if (err) {
+          return res.status(500).json({ msg: 'Ошибка сохранения старого токена' })
+        }
+
+        res.status(200).json({
+          token: generateToken({ _id, username, isOwner, orgName, orgCode }, { expiresIn: expiresTime }),
+          refresh: refreshTime,
+          user: { username },
+          exp: Math.floor(Date.now() / 1000 + expiresTime),
+          success: 'Токен успешно обновлён'
+        })
+      })
+    }
+  )
 }
 
