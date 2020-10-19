@@ -8,6 +8,7 @@ After completion of the task, the employee can send a report on the work perform
 ## How to install and run server
 
 * Clone this repository on your PC
+* Create `.env`, copy the fields with `.env.expample` and fill in
 * Run ```npm install```
 * Run ```npm run start```
 
@@ -15,11 +16,13 @@ After completion of the task, the employee can send a report on the work perform
 
 - **node_modules** - libraries.
 - **controllers** - includes functions that are used in routes
+- **emails** - includes files with default templates for mail
 - **models** - includes schemas. Each schema maps to a MongoDB collection and defines the shape of the documents within that collection
 - **routes** - includes routes. Routing refers to how an application’s endpoints (URIs) respond to client requests.
 - **services** - include functions that are worked with database and returned result to user.
 - **validators** - includes validators that are used in routes, also, for validate data which will come from front-end
 - **index.js** - main file that are starting our server and connecting to database
+- **.env.example** - includes the example default settings required to start the server
 
 ## Using frameworks
 
