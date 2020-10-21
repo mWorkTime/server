@@ -8,6 +8,11 @@ const userSchema = new Schema({
     required: true,
     max: 32
   },
+  surname: {
+    type: String,
+    trim: true,
+    max: 32
+  },
   email: {
     type: String,
     trim: true,
@@ -34,7 +39,13 @@ const userSchema = new Schema({
     required: true,
     default: false
   },
-  role: { type: Number, default: 0 },
+  isSacked: {
+    type: Boolean,
+    required: true,
+    default: false
+  },
+  gender: String,
+  role: [{ type: Object }],
   isVerified: { type: Boolean, default: false },
   salt: String,
   resetPasswordLink: {
@@ -56,7 +67,7 @@ userSchema.virtual('password')
     // encryptPassword
     this.hashed_password = this.encryptPassword(password)
   })
-  .get(function() {
+  .get(function () {
     return this._password
   })
 

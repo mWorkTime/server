@@ -13,11 +13,15 @@ exports.getUserFromDB = (userId, res) => {
         return res.status(500).json({ msg: err.message })
       }
 
-      const { isOwner, isVerified, name, phone, email, createdAt, _id } = user
+      if (!user) {
+        return res.status(400).json({ msg: 'Пользователя не существует или он был удалён!' })
+      }
+
+      const { isOwner, isVerified, name, phone, email, createdAt, _id, isSacked, role } = user
       const userPhone = phone ? phone : ''
 
       res.status(200).json({
-        user: { name, email, phone: userPhone, isVerified, isOwner, createdAt, id: _id },
+        user: { name, email, phone: userPhone, isVerified, isOwner, createdAt, id: _id, isSacked, role },
         organization: { code: user.organization.code, name: user.organization.name }
       })
     }
