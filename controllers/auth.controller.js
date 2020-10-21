@@ -5,19 +5,15 @@ const jwt = require('jsonwebtoken')
 const expiresTime = parseInt(process.env.EXPIRES_TIME)
 
 exports.register = async (req, res) => {
-  try {
-    const user = await User.findOne({ email: req.body.email })
+  const user = await User.findOne({ email: req.body.email })
 
-    if (user) {
-      return res.status(400).json({
-        error: `Данный email уже используется!`
-      })
-    }
-
-    await saveNewUserAndOrganization(req, res)
-  } catch (err) {
-    return res.status(400).json(err.message)
+  if (user) {
+    return res.status(400).json({
+      error: `Данный email уже используется!`
+    })
   }
+
+  await saveNewUserAndOrganization(req, res)
 }
 
 exports.login = (req, res) => {

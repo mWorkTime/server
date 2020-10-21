@@ -4,6 +4,7 @@ const nodemailer = require('nodemailer')
 const User = require('../models/user.model')
 const Organization = require('../models/organization.model')
 const Token = require('../models/token.model')
+const Role = require('../models/role')
 const BlockList = require('../models/blocklist.model')
 const registrationMail = require('../emails/registration')
 const { generateToken } = require('../utils/generate-token')
@@ -26,36 +27,47 @@ exports.saveNewUserAndOrganization = async (req, res) => {
   const { name, email, organization, password } = req.body
   const username = shortId.generate()
   const codeOrganization = crypto.randomBytes(2).toString('hex')
-  const newUser = new User({ name, email, password, username, isOwner: true })
-  const newOrganization = new Organization({ name: organization, code: codeOrganization, owner: newUser._id })
-  const token = new Token({
-    _userId: newUser._id,
-    token: generateToken({ email }, { expiresIn: 86400 }),
-    expireAfterSeconds: 86400
-  })
-  newUser.organization = newOrganization._id
+  const codes = [0, 2, 3]
 
-  token.save((err) => {
-    if (err) return res.status(500).json({ msg: err.message })
-  })
+  try {
+    const roles = await Role.find({ 'role-code': { $in: codes } })
+    const newUser = new User({ name, email, password, username, isOwner: true })
+    const newOrganization = new Organization({ name: organization, code: codeOrganization, owner: newUser._id })
+    newUser.organization = newOrganization._id
 
-  newOrganization.save((err) => {
-    if (err) return res.status(500).json({ msg: err.message })
-  })
-
-  newUser.save((err) => {
-    if (err) return res.status(500).json({ msg: err.message })
-  })
-
-  const link = `${process.env.CLIENT_URL}/confirm/${token.token}`
-
-  await transporter.sendMail(registrationMail(email, link), (err) => {
-    if (err) {
-      return res.status(500).json({ msg: 'Technical Issue!, Please click on resend for verify your Email.' })
+    for (let i = 0; i < roles.length; i++) {
+      newUser.role.push({
+        name: roles[i]['name'],
+        code: roles[i]['role-code']
+      })
     }
-  })
 
-  return res.status(200).json({ success: 'Регистрация прошла успешно. На Ваш электронный адрес отправлено письмо для подтверждения аккаунта!' })
+    const token = new Token({
+      _userId: newUser._id,
+      token: generateToken({ email }, { expiresIn: 86400 }),
+      expireAfterSeconds: 86400
+    })
+
+    await newUser.validate()
+    await token.validate()
+    await newOrganization.validate()
+
+    const link = `${process.env.CLIENT_URL}/confirm/${token.token}`
+
+    await transporter.sendMail(registrationMail(email, link), (err) => {
+      if (err) {
+        return res.status(500).json({ msg: err.message })
+      }
+
+      token.save()
+      newOrganization.save()
+      newUser.save()
+
+      res.status(200).json({ success: 'Регистрация прошла успешно. На Ваш электронный адрес отправлено письмо для подтверждения аккаунта!' })
+    })
+  } catch (err) {
+    return res.status(500).json({ msg: err.message })
+  }
 }
 
 /**
@@ -114,10 +126,7 @@ exports.saveTokenAndSendNewToken = (res, data = {}) => {
         return res.status(422).json({ msg: 'Невозможно обновить токен.' })
       }
 
-      const oldToken = new BlockList({
-        token: headerToken,
-        expireAfterSeconds: 86400
-      })
+      const oldToken = new BlockList({ token: headerToken, expireAfterSeconds: 86400 })
 
       oldToken.save((err) => {
         if (err) {
