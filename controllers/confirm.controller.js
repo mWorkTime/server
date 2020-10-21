@@ -5,7 +5,7 @@ exports.confirmEmail = async (req, res) => {
   const { token } = req.body
   const { email } = verifyToken(token)
 
-  await verifyEmail(token, email, res)
+  await verifyEmail({ email, token }, res)
 }
 
 exports.resendLink = async (req, res) => {
