@@ -22,7 +22,7 @@ exports.getUserFromDB = (userId, res) => {
 
       res.status(200).json({
         user: { name, email, phone: userPhone, isVerified, isOwner, createdAt, id: _id, isSacked, role },
-        organization: { code: user.organization.code, name: user.organization.name }
+        organization: { name: user.organization.name }
       })
     }
   )

@@ -26,25 +26,22 @@ const transporter = nodemailer.createTransport({
  */
 exports.saveNewUserAndOrganization = async (req, res) => {
   const { name, email, organization, password } = req.body
-  const username = shortId.generate()
-  const codeOrganization = crypto.randomBytes(4).toString('hex')
   const codes = [0, 2, 3]
 
   try {
     const roles = await Role.find({ 'role-code': { $in: codes } })
-    const newUser = new User({ name, email, password, username, isOwner: true })
+    const newUser = new User({ name, email, password, isOwner: true })
     const department = await Department.findOne({ name: 'Главный отдел' })
 
     if (!department) {
-      const codeDepartment = crypto.randomBytes(4).toString('hex')
-      const newDepartment = new Department({ name: 'Главный отдел', 'code-department': codeDepartment })
-      newUser.department = { name: newDepartment['name'], code: newDepartment['code-department'] }
+      const newDepartment = new Department({ name: 'Главный отдел' })
+      newUser.department = { name: newDepartment['name'] }
       newDepartment.save()
     } else {
-      newUser.department = { name: department['name'], code: department['code-department'] }
+      newUser.department = { name: department['name'] }
     }
 
-    const newOrganization = new Organization({ name: organization, code: codeOrganization, owner: newUser._id })
+    const newOrganization = new Organization({ name: organization, owner: newUser._id })
     newUser.organization = newOrganization._id
 
     for (let i = 0; i < roles.length; i++) {
@@ -103,20 +100,14 @@ exports.getUserAndLogin = (email, password, expiresTime, res) => {
         return res.status(400).json({ error: 'Ваша почта не была подтверждена. Пожалуйста сделайте это!' })
       }
 
-      const { _id, username, isOwner } = user
+      const { _id, isOwner } = user
 
-      const token = generateToken({
-        _id,
-        username,
-        isOwner,
-        orgName: user.organization.name,
-        orgCode: user.organization.code
-      }, { expiresIn: expiresTime })
+      const token = generateToken({ _id, isOwner, orgId: user.organization._id }, { expiresIn: expiresTime })
       res.cookie('token', token, { expiresIn: expiresTime })
 
       res.status(200).json({
         token,
-        user: { username },
+        user: _id,
         exp: Math.floor(Date.now() / 1000 + expiresTime)
       })
     })
@@ -129,7 +120,7 @@ exports.getUserAndLogin = (email, password, expiresTime, res) => {
  * @return {*}
  */
 exports.saveTokenAndSendNewToken = (res, data = {}) => {
-  const { headerToken, decodedToken: { _id, username, isOwner, orgName, orgCode }, expiresTime, refreshTime } = data
+  const { headerToken, decodedToken: { _id, isOwner, orgId }, expiresTime, refreshTime } = data
 
   return BlockList.findOne({ token: headerToken }).exec((err, token) => {
       if (err) {
@@ -146,9 +137,9 @@ exports.saveTokenAndSendNewToken = (res, data = {}) => {
         }
 
         res.status(200).json({
-          token: generateToken({ _id, username, isOwner, orgName, orgCode }, { expiresIn: expiresTime }),
+          token: generateToken({ _id, isOwner, orgId }, { expiresIn: expiresTime }),
           refresh: refreshTime,
-          user: { username },
+          user: _id,
           exp: Math.floor(Date.now() / 1000 + expiresTime),
           success: 'Токен успешно обновлён'
         })

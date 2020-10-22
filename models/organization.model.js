@@ -7,13 +7,6 @@ const organizationSchema = new Schema({
     required: true,
     max: 32
   },
-  code: {
-    type: String,
-    trim: true,
-    unique: true,
-    required: true,
-    max: 8
-  },
   owner: { type: Types.ObjectId, ref: 'User' },
   employees: [{ type: Object }]
 }, { timestamps: true })

@@ -2,7 +2,7 @@ const { verifyTokenFromReq } = require('../utils/verify-token-from-req')
 const { getUserFromDB } = require('../services/user.service')
 
 exports.getUser = (req, res) => {
-  const userId = verifyTokenFromReq(req, res)._id
+  const { _id } = verifyTokenFromReq(req)
 
-  getUserFromDB(userId, res)
+  getUserFromDB(_id, res)
 }

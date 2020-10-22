@@ -5,12 +5,6 @@ const departmentSchema = new Schema({
     type: String,
     required: true,
     max: 32
-  },
-  'code-department': {
-    type: String,
-    required: true,
-    max: 8,
-    index: true
   }
 }, { timestamps: true })
 

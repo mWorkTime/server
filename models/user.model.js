@@ -24,15 +24,6 @@ const userSchema = new Schema({
     type: String,
     required: true
   },
-  username: {
-    type: String,
-    trim: true,
-    required: true,
-    max: 10,
-    unique: true,
-    index: true,
-    lowercase: true
-  },
   phone: String,
   isOwner: {
     type: Boolean,
