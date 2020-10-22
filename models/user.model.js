@@ -44,7 +44,11 @@ const userSchema = new Schema({
     required: true,
     default: false
   },
-  gender: String,
+  gender: {
+    type: String,
+    default: 'unknown'
+  },
+  department: { type: Object },
   role: [{ type: Object }],
   isVerified: { type: Boolean, default: false },
   salt: String,

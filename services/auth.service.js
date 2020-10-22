@@ -4,8 +4,9 @@ const nodemailer = require('nodemailer')
 const User = require('../models/user.model')
 const Organization = require('../models/organization.model')
 const Token = require('../models/token.model')
-const Role = require('../models/role')
+const Role = require('../models/role.model')
 const BlockList = require('../models/blocklist.model')
+const Department = require('../models/department.model')
 const registrationMail = require('../emails/registration')
 const { generateToken } = require('../utils/generate-token')
 
@@ -26,12 +27,23 @@ const transporter = nodemailer.createTransport({
 exports.saveNewUserAndOrganization = async (req, res) => {
   const { name, email, organization, password } = req.body
   const username = shortId.generate()
-  const codeOrganization = crypto.randomBytes(2).toString('hex')
+  const codeOrganization = crypto.randomBytes(4).toString('hex')
   const codes = [0, 2, 3]
 
   try {
     const roles = await Role.find({ 'role-code': { $in: codes } })
     const newUser = new User({ name, email, password, username, isOwner: true })
+    const department = await Department.findOne({ name: 'Главный отдел' })
+
+    if (!department) {
+      const codeDepartment = crypto.randomBytes(4).toString('hex')
+      const newDepartment = new Department({ name: 'Главный отдел', 'code-department': codeDepartment })
+      newUser.department = { name: newDepartment['name'], code: newDepartment['code-department'] }
+      newDepartment.save()
+    } else {
+      newUser.department = { name: department['name'], code: department['code-department'] }
+    }
+
     const newOrganization = new Organization({ name: organization, code: codeOrganization, owner: newUser._id })
     newUser.organization = newOrganization._id
 
