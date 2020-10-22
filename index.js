@@ -11,6 +11,7 @@ require('dotenv').config()
 const authRoutes = require('./routes/auth.route')
 const confirmRoutes = require('./routes/confirm.route')
 const userRoutes = require('./routes/user.route')
+const employeeRoutes = require('./routes/employee.route')
 
 // app
 const app = express()
@@ -31,6 +32,7 @@ if (process.env.NODE_ENV === 'development') {
 app.use('/auth', authRoutes)
 app.use('/confirm', confirmRoutes)
 app.use('/user', userRoutes)
+app.use('/employee', employeeRoutes)
 
 // port
 const port = process.env.PORT || 5000

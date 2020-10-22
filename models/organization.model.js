@@ -10,11 +10,12 @@ const organizationSchema = new Schema({
   code: {
     type: String,
     trim: true,
+    unique: true,
     required: true,
-    max: 6
+    max: 8
   },
-  owner: { type: Types.ObjectId, ref: 'User' }
-  // employees: [{ type: Types.ObjectId, ref: 'Employee' }]
+  owner: { type: Types.ObjectId, ref: 'User' },
+  employees: [{ type: Object }]
 }, { timestamps: true })
 
 module.exports = model('Organization', organizationSchema)
