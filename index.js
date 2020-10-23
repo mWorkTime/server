@@ -14,6 +14,8 @@ const authRoutes = require('./routes/auth.route')
 const confirmRoutes = require('./routes/confirm.route')
 const userRoutes = require('./routes/user.route')
 const employeeRoutes = require('./routes/employee.route')
+const departmentRoutes = require('./routes/department.route')
+const roleRoutes = require('./routes/role.route')
 
 // app
 const app = express()
@@ -40,6 +42,8 @@ app.use('/auth', authRoutes)
 app.use('/confirm', confirmRoutes)
 app.use('/user', userRoutes)
 app.use('/employee', employeeRoutes)
+app.use('/department', departmentRoutes)
+app.use('/role', roleRoutes)
 
 // port
 const port = process.env.PORT || 5000

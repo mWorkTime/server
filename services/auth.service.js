@@ -32,7 +32,7 @@ exports.saveNewUserAndOrganization = async (req, res) => {
     const department = await Department.findOne({ name: 'Главный отдел' })
 
     if (!department) {
-      const newDepartment = new Department({ name: 'Главный отдел' })
+      const newDepartment = new Department({ name: 'главный отдел' })
       newUser.department = { name: newDepartment['name'] }
       newDepartment.save()
     } else {

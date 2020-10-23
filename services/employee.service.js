@@ -21,11 +21,25 @@ exports.getEmployeesByOrgCode = (orgId, res) => {
       const { isOwner, isSacked, gender, role, isVerified, name, email, department, createdAt } = owner
 
       if (!employees) {
-        return res.status(200).json({ employees: [{  isOwner, isSacked, gender, role, isVerified, name, email, department, createdAt }] })
+        return res.status(200).json({
+          employees: [{ isOwner, isSacked, gender, role, isVerified, name, email, department, createdAt }]
+        })
+      }
+
+      let convertingEmployees = []
+
+      for (let i = 0; i < employees.length; i++) {
+        convertingEmployees.push({
+          isOwner: employees[i].isOwner, isSacked: employees[i].isSacked,
+          isVerified: employees[i].isVerified, role: employees[i].role,
+          name: employees[i].name, department: employees[i].department,
+          createdAt: employees[i].createdAt, email: employees[i].email,
+          phone: employees[i].phone || 'не указан', surname: employees[i].surname
+        })
       }
 
       res.status(200).json({
-        employees: [...employees, { isOwner, isSacked, gender, role, isVerified, name, email, department, createdAt}]
+        employees: [...convertingEmployees, { isOwner, isSacked, gender, role, isVerified, name, email, department, createdAt }]
       })
     })
 }
@@ -86,4 +100,3 @@ exports.saveNewEmployee = async (data = {}, res) => {
     res.status(500).json({ msg: err.message })
   }
 }
-
