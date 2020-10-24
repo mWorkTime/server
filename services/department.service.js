@@ -1,4 +1,5 @@
 const Department = require('../models/department.model')
+const { transformArray } = require('../utils/transform-array')
 
 /**
  * getDepartmentsFromDB. Gets all departments from DB.
@@ -11,13 +12,8 @@ exports.getDepartmentsFromDB = (res) => {
       if (err) {
         return res.status(500).json({ msg: err.message })
       }
-      let convertingDepartments = []
 
-      for (let i = 0; i < departments.length; i++) {
-        convertingDepartments.push({ id: departments[i]._id, name: departments[i].name })
-      }
-
-      res.status(200).json({ departments: convertingDepartments })
+      res.status(200).json({ departments: transformArray(departments) })
     })
 }
 
@@ -35,9 +31,7 @@ exports.saveDepartmentInDB = async (name, res) => {
       return res.status(400).json({ error: 'Такой отдел уже существует. Выберите его из списка.' })
     }
 
-    const newDepartment = new Department({
-      name: serializeName
-    })
+    const newDepartment = new Department({ name: serializeName })
 
     await newDepartment.validate()
     newDepartment.save()

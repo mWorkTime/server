@@ -8,7 +8,7 @@ const { sanitizeNumberPhone } = require('../utils/sanitize-phone-number')
 /**
  * getEmployeesByOrgCode. Gets employees by organization code from DB.
  * @param {string} orgId
- * @param {object}  res
+ * @param {object} res
  * @return {*}
  */
 exports.getEmployeesByOrgCode = (orgId, res) => {
@@ -19,27 +19,24 @@ exports.getEmployeesByOrgCode = (orgId, res) => {
       }
       const { employees, owner } = organization
       const { isOwner, isSacked, gender, role, isVerified, name, email, department, createdAt } = owner
+      const convertingOwner = { isOwner, isSacked, gender, role, isVerified, name, email, department, createdAt }
 
       if (!employees) {
         return res.status(200).json({
-          employees: [{ isOwner, isSacked, gender, role, isVerified, name, email, department, createdAt }]
+          employees: [convertingOwner]
         })
       }
 
-      let convertingEmployees = []
-
-      for (let i = 0; i < employees.length; i++) {
-        convertingEmployees.push({
-          isOwner: employees[i].isOwner, isSacked: employees[i].isSacked,
-          isVerified: employees[i].isVerified, role: employees[i].role,
-          name: employees[i].name, department: employees[i].department,
-          createdAt: employees[i].createdAt, email: employees[i].email,
-          phone: employees[i].phone || 'не указан', surname: employees[i].surname
-        })
-      }
+      const convertingEmployees = employees.reduce((acc, employee) => {
+        const { isOwner, isSacked, isVerified, name, department, createdAt, email, surname, role, gender } = employee
+        acc.push({
+          isOwner, isSacked, isVerified, name,
+          department, createdAt, email, surname, role, phone: employee.phone || 'не указан', gender })
+        return acc
+      }, [])
 
       res.status(200).json({
-        employees: [...convertingEmployees, { isOwner, isSacked, gender, role, isVerified, name, email, department, createdAt }]
+        employees: [...convertingEmployees, convertingOwner]
       })
     })
 }
@@ -51,7 +48,7 @@ exports.getEmployeesByOrgCode = (orgId, res) => {
  * @return {Promise<this>}
  */
 exports.saveNewEmployee = async (data = {}, res) => {
-  const { orgId, roles, name, surname, email, password, phone, gender, department } = data
+  const { orgId, roles, name, surname, email, password, phone, gender, department: { id } } = data
 
   try {
     const employee = await User.findOne({ email })
@@ -67,21 +64,14 @@ exports.saveNewEmployee = async (data = {}, res) => {
       return res.status(400).json({ error: 'Такой организации не существует в нашей системе.' })
     }
 
-    const foundRoles = await Role.find({ 'role-code': { $in: roles } })
+    const foundRoles = await Role.find({ _id: { $in: roles } })
+    const foundDepartment = await Department.findOne({ _id: id })
 
     const newEmployee = new User({
       name, surname, phone: phoneNumber, email, gender, password,
       isVerified: true, organization: organization._id
     })
-
-    if (department.name && !department._id) {
-      const newDepartment = new Department({ name: department.name })
-      newEmployee.department = { name: department.name }
-      newDepartment.save()
-    } else {
-      const foundDepartment = await Department.findOne({ _id: department._id })
-      newEmployee.department = { name: foundDepartment.name }
-    }
+    newEmployee.department = { name: foundDepartment.name }
 
     for (let i = 0; i < foundRoles.length; i++) {
       newEmployee.role.push({

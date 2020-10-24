@@ -12,7 +12,8 @@ exports.verifyTokenFromReq = (req) => {
   return {
     _id: decodedToken._id,
     isOwner: decodedToken.isOwner,
-    orgId: decodedToken.orgId
+    orgId: decodedToken.orgId,
+    roles: decodedToken.roles
   }
 }
 

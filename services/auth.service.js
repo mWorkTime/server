@@ -98,9 +98,14 @@ exports.getUserAndLogin = (email, password, expiresTime, res) => {
         return res.status(400).json({ error: 'Ваша почта не была подтверждена. Пожалуйста сделайте это!' })
       }
 
-      const { _id, isOwner } = user
+      const { _id, isOwner, role } = user
 
-      const token = generateToken({ _id, isOwner, orgId: user.organization._id }, { expiresIn: expiresTime })
+      const convertRoles = role.reduce((acc, item) => {
+        acc.push(item.code)
+        return acc
+      },[])
+
+      const token = generateToken({ _id, isOwner, orgId: user.organization._id, roles: convertRoles }, { expiresIn: expiresTime })
       res.cookie('token', token, { expiresIn: expiresTime })
 
       res.status(200).json({
@@ -118,7 +123,7 @@ exports.getUserAndLogin = (email, password, expiresTime, res) => {
  * @return {*}
  */
 exports.saveTokenAndSendNewToken = (res, data = {}) => {
-  const { headerToken, decodedToken: { _id, isOwner, orgId }, expiresTime, refreshTime } = data
+  const { headerToken, decodedToken: { _id, isOwner, orgId, roles }, expiresTime, refreshTime } = data
 
   return BlockList.findOne({ token: headerToken }).exec((err, token) => {
       if (err) {
@@ -135,7 +140,7 @@ exports.saveTokenAndSendNewToken = (res, data = {}) => {
         }
 
         res.status(200).json({
-          token: generateToken({ _id, isOwner, orgId }, { expiresIn: expiresTime }),
+          token: generateToken({ _id, isOwner, orgId, roles }, { expiresIn: expiresTime }),
           refresh: refreshTime,
           user: _id,
           exp: Math.floor(Date.now() / 1000 + expiresTime),
