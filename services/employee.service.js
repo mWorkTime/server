@@ -4,6 +4,9 @@ const Role = require('../models/role.model')
 const Department = require('../models/department.model')
 const { removeWhitespace } = require('../utils/remove-whitespace')
 const { sanitizeNumberPhone } = require('../utils/sanitize-phone-number')
+const emailTransporter = require('../emails/email-transporter')
+const registrationEmployee = require('../emails/registration-employee')
+const crypto = require('crypto')
 
 /**
  * getEmployeesByOrgCode. Gets employees by organization code from DB.
@@ -31,7 +34,8 @@ exports.getEmployeesByOrgCode = (orgId, res) => {
         const { isOwner, isSacked, isVerified, name, department, createdAt, email, surname, role, gender } = employee
         acc.push({
           isOwner, isSacked, isVerified, name,
-          department, createdAt, email, surname, role, phone: employee.phone || 'не указан', gender })
+          department, createdAt, email, surname, role, phone: employee.phone || 'не указан', gender
+        })
         return acc
       }, [])
 
@@ -48,7 +52,7 @@ exports.getEmployeesByOrgCode = (orgId, res) => {
  * @return {Promise<this>}
  */
 exports.saveNewEmployee = async (data = {}, res) => {
-  const { orgId, roles, name, surname, email, password, phone, gender, department: { id } } = data
+  const { orgId, roles, name, surname, email, phone, gender, department: { id } } = data
 
   try {
     const employee = await User.findOne({ email })
@@ -64,6 +68,7 @@ exports.saveNewEmployee = async (data = {}, res) => {
       return res.status(400).json({ error: 'Такой организации не существует в нашей системе.' })
     }
 
+    const password = crypto.randomBytes(4).toString('hex')
     const foundRoles = await Role.find({ _id: { $in: roles } })
     const foundDepartment = await Department.findOne({ _id: id })
 
@@ -82,10 +87,15 @@ exports.saveNewEmployee = async (data = {}, res) => {
     organization.employees.push(newEmployee)
 
     await newEmployee.validate()
-    newEmployee.save()
-    organization.save()
+    await emailTransporter.sendMail(registrationEmployee(email, password, organization.name, name), (err) => {
+      if (err) {
+        return res.status(500).json({ msg: err.message })
+      }
+      newEmployee.save()
+      organization.save()
 
-    res.status(200).json({ success: 'Работник успешно зарегистрирован!' })
+      res.status(200).json({ success: 'Работник успешно зарегистрирован и отправлено письмо на почту!' })
+    })
   } catch (err) {
     res.status(500).json({ msg: err.message })
   }

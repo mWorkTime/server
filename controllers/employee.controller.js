@@ -9,7 +9,7 @@ exports.getAllEmployees = (req, res) => {
 
 exports.createEmployee = async (req, res) => {
   const { _id, orgId } = verifyTokenFromReq(req)
-  const { roles, name, surname, email, password, phone, gender, department } = req.body
+  const { roles, name, surname, email, phone, gender, department } = req.body
 
-  await saveNewEmployee({ _id, orgId, roles, name, surname, email, password, phone, gender, department }, res)
+  await saveNewEmployee({ _id, orgId, roles, name, surname, email, phone, gender, department }, res)
 }

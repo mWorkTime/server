@@ -1,4 +1,4 @@
-const nodemailer = require('nodemailer')
+const emailTransporter = require('../emails/email-transporter')
 const User = require('../models/user.model')
 const Organization = require('../models/organization.model')
 const Token = require('../models/token.model')
@@ -7,14 +7,6 @@ const BlockList = require('../models/blocklist.model')
 const Department = require('../models/department.model')
 const registrationMail = require('../emails/registration')
 const { generateToken } = require('../utils/generate-token')
-
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_FROM,
-    pass: process.env.EMAIL_PASS
-  }
-})
 
 /**
  * saveNewUserAndOrganization. Create new user, organization and save them in DB.
@@ -29,10 +21,10 @@ exports.saveNewUserAndOrganization = async (req, res) => {
   try {
     const roles = await Role.find({ 'role-code': { $in: codes } })
     const newUser = new User({ name, email, password, isOwner: true })
-    const department = await Department.findOne({ name: 'Главный отдел' })
+    const department = await Department.findOne({ name: 'администрация' })
 
     if (!department) {
-      const newDepartment = new Department({ name: 'главный отдел' })
+      const newDepartment = new Department({ name: 'администрация' })
       newUser.department = { name: newDepartment['name'] }
       newDepartment.save()
     } else {
@@ -61,7 +53,7 @@ exports.saveNewUserAndOrganization = async (req, res) => {
 
     const link = `${process.env.CLIENT_URL}/confirm/${token.token}`
 
-    await transporter.sendMail(registrationMail(email, link), (err) => {
+    await emailTransporter.sendMail(registrationMail(email, link, name), (err) => {
       if (err) {
         return res.status(500).json({ msg: err.message })
       }
@@ -103,9 +95,14 @@ exports.getUserAndLogin = (email, password, expiresTime, res) => {
       const convertRoles = role.reduce((acc, item) => {
         acc.push(item.code)
         return acc
-      },[])
+      }, [])
 
-      const token = generateToken({ _id, isOwner, orgId: user.organization._id, roles: convertRoles }, { expiresIn: expiresTime })
+      const token = generateToken({
+        _id,
+        isOwner,
+        orgId: user.organization._id,
+        roles: convertRoles
+      }, { expiresIn: expiresTime })
       res.cookie('token', token, { expiresIn: expiresTime })
 
       res.status(200).json({
