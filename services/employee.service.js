@@ -25,7 +25,7 @@ exports.getEmployeesByOrgCode = (orgId, res) => {
         const { isSacked, isVerified, name, department, createdAt, email, role, _id } = employee
         acc.push({
           id: _id, isSacked, isVerified, name: `${name} ${employee.surname || ''}`,
-          department, createdAt, email, role, phone: employee.phone || 'не указан',
+          department, createdAt, email, role, phone: employee.phone || 'не указан'
         })
         return acc
       }, [])
@@ -102,8 +102,31 @@ exports.saveNewEmployee = async (data = {}, res) => {
 
     newEmployee.save()
 
-    res.status(200).json({ success: 'Работник успешно зарегистрирован и отправлено письмо на почту!' })
+    res.status(200).json({
+      success: 'Работник успешно зарегистрирован и отправлено письмо на почту!'
+    })
   } catch (err) {
     res.status(500).json({ msg: err.message })
   }
+}
+
+/**
+ * getEmployeeById. Gets user from DB.
+ * @param {string} _id
+ * @param {object} res
+ * @return {*}
+ */
+exports.getEmployeeById = (_id, res) => {
+  return User.findOne({ _id })
+    .exec((err, user) => {
+      if(err) {
+        return res.status(500).json({ msg: err.message })
+      }
+
+      if (!user) {
+        return res.status(400).json({ error: 'Такого пользователя не существует.' })
+      }
+
+      res.status(200).json({ user })
+    })
 }

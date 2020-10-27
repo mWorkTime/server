@@ -1,10 +1,16 @@
-const { saveNewEmployee, getEmployeesByOrgCode } = require('../services/employee.service')
+const { saveNewEmployee, getEmployeesByOrgCode, getEmployeeById } = require('../services/employee.service')
 const { verifyTokenFromReq } = require('../utils/verify-token-from-req')
 
 exports.getAllEmployees = (req, res) => {
   const { orgId } = verifyTokenFromReq(req)
 
   getEmployeesByOrgCode(orgId, res)
+}
+
+exports.getEmployee = (req, res) => {
+  const userId = req.params.id
+
+  getEmployeeById(userId, res)
 }
 
 exports.createEmployee = async (req, res) => {
