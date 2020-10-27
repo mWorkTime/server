@@ -15,32 +15,44 @@ const crypto = require('crypto')
  * @return {*}
  */
 exports.getEmployeesByOrgCode = (orgId, res) => {
-  return Organization.findOne({ _id: orgId }).populate('owner')
-    .exec((err, organization) => {
+  return User.find({ organization: orgId })
+    .exec((err, employees) => {
       if (err) {
         return res.status(500).json({ msg: err.message })
       }
-      const { employees, owner } = organization
-      const { isOwner, isSacked, gender, role, isVerified, name, email, department, createdAt } = owner
-      const convertingOwner = { isOwner, isSacked, gender, role, isVerified, name, email, department, createdAt }
-
-      if (!employees) {
-        return res.status(200).json({
-          employees: [convertingOwner]
-        })
-      }
 
       const convertingEmployees = employees.reduce((acc, employee) => {
-        const { isOwner, isSacked, isVerified, name, department, createdAt, email, surname, role, gender } = employee
+        const { isSacked, isVerified, name, department, createdAt, email, role, _id } = employee
         acc.push({
-          isOwner, isSacked, isVerified, name,
-          department, createdAt, email, surname, role, phone: employee.phone || 'не указан', gender
+          id: _id, isSacked, isVerified, name: `${name} ${employee.surname || ''}`,
+          department, createdAt, email, role, phone: employee.phone || 'не указан',
         })
         return acc
       }, [])
 
+      let managers = 0,
+        owners = 0,
+        workers = 0
+
+      for (let i = 0; i < convertingEmployees.length; i++) {
+        for (let j = 0; j < convertingEmployees[i].role.length; j++) {
+          if (convertingEmployees[i].role[j].code === 3) {
+            owners += 1
+          } else if (convertingEmployees[i].role[j].code === 2) {
+            managers += 1
+          } else if (convertingEmployees[i].role[j].code === 0)
+            workers += 1
+        }
+      }
+
       res.status(200).json({
-        employees: [...convertingEmployees, convertingOwner]
+        employees: [...convertingEmployees],
+        quantity: {
+          total: employees.length,
+          managers,
+          owners,
+          workers: workers - owners - managers
+        }
       })
     })
 }
@@ -84,18 +96,13 @@ exports.saveNewEmployee = async (data = {}, res) => {
         code: foundRoles[i]['role-code']
       })
     }
-    organization.employees.push(newEmployee)
 
     await newEmployee.validate()
-    await emailTransporter.sendMail(registrationEmployee(email, password, organization.name, name), (err) => {
-      if (err) {
-        return res.status(500).json({ msg: err.message })
-      }
-      newEmployee.save()
-      organization.save()
+    await emailTransporter.sendMail(registrationEmployee(email, password, organization.name, name))
 
-      res.status(200).json({ success: 'Работник успешно зарегистрирован и отправлено письмо на почту!' })
-    })
+    newEmployee.save()
+
+    res.status(200).json({ success: 'Работник успешно зарегистрирован и отправлено письмо на почту!' })
   } catch (err) {
     res.status(500).json({ msg: err.message })
   }

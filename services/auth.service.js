@@ -31,7 +31,7 @@ exports.saveNewUserAndOrganization = async (req, res) => {
       newUser.department = { name: department['name'] }
     }
 
-    const newOrganization = new Organization({ name: organization, owner: newUser._id })
+    const newOrganization = new Organization({ name: organization })
     newUser.organization = newOrganization._id
 
     for (let i = 0; i < roles.length; i++) {
@@ -53,17 +53,13 @@ exports.saveNewUserAndOrganization = async (req, res) => {
 
     const link = `${process.env.CLIENT_URL}/confirm/${token.token}`
 
-    await emailTransporter.sendMail(registrationMail(email, link, name), (err) => {
-      if (err) {
-        return res.status(500).json({ msg: err.message })
-      }
+    await emailTransporter.sendMail(registrationMail(email, link, name))
 
-      token.save()
-      newOrganization.save()
-      newUser.save()
+    token.save()
+    newOrganization.save()
+    newUser.save()
 
-      res.status(200).json({ success: 'Регистрация прошла успешно. На Ваш электронный адрес отправлено письмо для подтверждения аккаунта!' })
-    })
+    res.status(200).json({ success: 'Регистрация прошла успешно. На Ваш электронный адрес отправлено письмо для подтверждения аккаунта!' })
   } catch (err) {
     return res.status(500).json({ msg: err.message })
   }
@@ -95,19 +91,15 @@ exports.getUserAndLogin = (email, password, expiresTime, res) => {
       const convertRoles = role.reduce((acc, item) => {
         acc.push(item.code)
         return acc
-      }, [])
+      },[])
 
-      const token = generateToken({
-        _id,
-        isOwner,
-        orgId: user.organization._id,
-        roles: convertRoles
-      }, { expiresIn: expiresTime })
+      const token = generateToken({ _id, isOwner, orgId: user.organization._id, roles: convertRoles }, { expiresIn: expiresTime })
       res.cookie('token', token, { expiresIn: expiresTime })
 
       res.status(200).json({
         token,
         user: _id,
+        nameOrg: user.organization.name,
         exp: Math.floor(Date.now() / 1000 + expiresTime)
       })
     })
@@ -120,7 +112,7 @@ exports.getUserAndLogin = (email, password, expiresTime, res) => {
  * @return {*}
  */
 exports.saveTokenAndSendNewToken = (res, data = {}) => {
-  const { headerToken, decodedToken: { _id, isOwner, orgId, roles }, expiresTime, refreshTime } = data
+  const { headerToken, decodedToken: { _id, isOwner, orgId, roles }, nameOrg, expiresTime, refreshTime } = data
 
   return BlockList.findOne({ token: headerToken }).exec((err, token) => {
       if (err) {
@@ -139,6 +131,7 @@ exports.saveTokenAndSendNewToken = (res, data = {}) => {
         res.status(200).json({
           token: generateToken({ _id, isOwner, orgId, roles }, { expiresIn: expiresTime }),
           refresh: refreshTime,
+          nameOrg,
           user: _id,
           exp: Math.floor(Date.now() / 1000 + expiresTime),
           success: 'Токен успешно обновлён'
