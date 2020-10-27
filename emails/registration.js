@@ -21,7 +21,7 @@ module.exports = function (email, link, name) {
                 </tr>
                 <tr>
                     <td style="background: white; padding: 30px 35px;">
-                        <h2 style="margin-bottom: 20px; line-height: 1.25; font-size: 18px; color: #5B53E9 !important">Привет ${name}</h2>
+                        <h2 style="margin-bottom: 20px; line-height: 1.25; font-size: 18px; color: #5B53E9 !important">Привет, ${name}</h2>
                         <p style="font-size: 16px; font-weight: normal; margin-bottom: 20px;" >Вы успешно создали аккаунт с email - ${email}</p>
                         <p style="font-size: 16px; font-weight: normal; margin-bottom: 20px;">Потвердите Вашу почту перейдя по ссылке ниже:</p>
                         <table>

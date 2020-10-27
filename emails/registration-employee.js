@@ -28,7 +28,7 @@ module.exports = function (email, password, org, name) {
                 </tr>
                 <tr>
                     <td style="background: white; padding: 10px 15px;">
-                        <h2 style="margin-bottom: 20px; line-height: 1.25; font-size: 18px; color: #5B53E9 !important">Привет ${name}</h2>
+                        <h2 style="margin-bottom: 20px; line-height: 1.25; font-size: 18px; color: #5B53E9 !important">Привет, ${name}</h2>
                         <p style="font-size: 16px; font-weight: normal; margin-bottom: 20px;" >Вы успешно добавлены в организацию: ${org}</p>
                         <p style="font-size: 16px; font-weight: normal; margin-bottom: 20px;">Ваши данные для входа в учётную запись: </p>
                         <p style="font-size: 16px; color: #ff4d4f; font-weight: bold; margin-bottom: 20px;">Пароль временный, смените его!</p>
