@@ -14,6 +14,6 @@ exports.getRolesFromDB = (data, res) => {
         return res.status(500).json({ msg: err.message })
       }
 
-      res.status(200).json({ roles: transformArray(roles) })
+      res.status(200).json({ roles })
     })
 }

@@ -119,7 +119,7 @@ exports.saveNewEmployee = async (data = {}, res) => {
 exports.getEmployeeById = (_id, res) => {
   return User.findOne({ _id })
     .exec((err, user) => {
-      if(err) {
+      if (err) {
         return res.status(500).json({ msg: err.message })
       }
 
@@ -129,4 +129,17 @@ exports.getEmployeeById = (_id, res) => {
 
       res.status(200).json({ user })
     })
+}
+
+exports.saveModifiedEmployee = (data = {}, res) => {
+  const { email, gender, name, phone, roles, surname, department, userId } = data
+
+  return User.findOneAndUpdate({ _id: userId }, { email, gender, name, phone, roles, surname, department }, { new: true})
+    .exec((err, user) => {
+    if (err) {
+      return res.status(500).json({ msg: err.message })
+    }
+
+    res.status(200).json({ success: 'Данные пользователя успешно изменены!', user })
+  })
 }
