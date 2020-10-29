@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.2.0](https://github.com/mWorkTime/server/compare/v1.1.0...v1.2.0) (2020-10-29)
+
+
+### Features
+
+* **server:** enhance logic in department, auth, employee - services. Add field 'roles' to verify-token-from-req. Add department.validator. Enhance department.route - add validator to the route 'create'. ([671845d](https://github.com/mWorkTime/server/commit/671845da5f6f3ef4cfbc0cea0430778210958014))
+* **server: auth, employee:** refactor organization.model - remove fields owner and employees. Refactor auth.service and add to auth.controller new field 'orgName'. Refactor getEmployeesByOrgCode in employee.service. ([45802bf](https://github.com/mWorkTime/server/commit/45802bfa871c27416053601160adb5b57144b93a))
+* **server: department:** add department route, controller, service. Add the route to server (index.js). Add routes for get all departments and create new department to the route. ([d06414a](https://github.com/mWorkTime/server/commit/d06414af19248d8333002157becdc7928877daa8))
+* **server: Department:** add department model. Enhance user model - add default value to field 'gender', add new field 'department'. Add department to registration new user. ([48e140c](https://github.com/mWorkTime/server/commit/48e140cfcec5e199efd8f1cc4340cb93fdccc5f5))
+* **server: dismiss employee:** add the ability to dismiss employees from the organization. Add dismiss employee - route, controller and service. Some changes in auth.service. ([7d207d1](https://github.com/mWorkTime/server/commit/7d207d193914a9a22826cc09645aae53f9d3a8bd))
+* **server: email:** add email template - registration-employee. Add new logic (send mail to employee) to employee.service. Add new styles and blocks to registration (mail template). ([1ca5ba2](https://github.com/mWorkTime/server/commit/1ca5ba29b88fdf7e9fc2c475f8b4ea3ba1c3074e))
+* **server: email:** change config in email-transporter. Refactor - email templates. ([775b5db](https://github.com/mWorkTime/server/commit/775b5db52615e9b70a3a44167b4b78b9c1625148))
+* **server: employee:** add an employee - controller, service, route, validator. Add the route to server. Add new routes to the route. Add function 'saveNewEmployee' - to the service. ([28518eb](https://github.com/mWorkTime/server/commit/28518eb0834d404c668afab22d275e5abf477203))
+* **server: employee:** use lib debug in server. Add utils - remove-whitespace and sanitize-phone-number. Add some logic and function to employee.controller. Add getEmployeesByOrgCode to employee.service. ([cc5c6ae](https://github.com/mWorkTime/server/commit/cc5c6ae2c90fc739d272e1d9ed6ba6de17148947))
+* **server: get employee:** add to employee controller - getEmloyee, to the service - getEmployeeById. Add to the route - a route get employee by id. ([65777df](https://github.com/mWorkTime/server/commit/65777df52f2211ba1372e960871b93f77de20c16))
+* **server: middlewares:** add new middlewares - organization and permission. ([b9f36d9](https://github.com/mWorkTime/server/commit/b9f36d90d6e1090eb9ffb3764493553cfde87c5d))
+* **server: role:** add department - route, controller, service. Add getRolesFromDB to role.service. Add transform-array to utils. ([10745a0](https://github.com/mWorkTime/server/commit/10745a038f57f8fa92bdd952b38367812780dceb))
+* **server: user:** improve models - department, user, organization --> remove unnecessary fields 'username','code','code-department'. Change logic in auth.service, user.service and verify-token-from-req. ([d846725](https://github.com/mWorkTime/server/commit/d846725f306ccbcbba35ad30bdb3f3aba0f7edcc))
+* **web: employee-edit:** Add items for form employee-edit to formCreateItems. Add updateEmployee (local) - to employee.reducer. Some changes in employee-forms and user modal. ([b43cc22](https://github.com/mWorkTime/server/commit/b43cc22c9527f9efbe97630c3deea5aa7c25f8a3))
+
 ## 1.1.0 (2020-10-21)
 
 
