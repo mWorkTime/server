@@ -132,9 +132,9 @@ exports.getEmployeeById = (_id, res) => {
 }
 
 exports.saveModifiedEmployee = (data = {}, res) => {
-  const { email, gender, name, phone, roles, surname, department, userId } = data
+  const { gender, name, phone, roles, surname, department, userId } = data
 
-  return User.findOneAndUpdate({ _id: userId }, { email, gender, name, phone, roles, surname, department }, { new: true})
+  return User.findOneAndUpdate({ _id: userId }, { gender, name, phone, role: roles, surname, department }, { new: true})
     .exec((err, user) => {
     if (err) {
       return res.status(500).json({ msg: err.message })
