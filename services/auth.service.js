@@ -84,6 +84,8 @@ exports.getUserAndLogin = (email, password, expiresTime, res) => {
         return res.status(400).json({ error: 'Введён неправильный пароль!' })
       } else if (!user.isVerified) {
         return res.status(400).json({ error: 'Ваша почта не была подтверждена. Пожалуйста сделайте это!' })
+      } else if (user.isSacked) {
+        return res.status(400).json({ error: 'Вы не можете войти в систему. Причина: Вас уволили!' })
       }
 
       const { _id, isOwner, role } = user

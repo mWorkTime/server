@@ -22,10 +22,11 @@ exports.getEmployeesByOrgCode = (orgId, res) => {
       }
 
       const convertingEmployees = employees.reduce((acc, employee) => {
-        const { isSacked, isVerified, name, department, createdAt, email, role, _id } = employee
+        const { isSacked, isVerified, name, department, createdAt, email, role, _id, organization } = employee
         acc.push({
           id: _id, isSacked, isVerified, name: `${name} ${employee.surname || ''}`,
-          department, createdAt, email, role, phone: employee.phone || 'не указан'
+          department, createdAt, email, role, phone: employee.phone || 'не указан',
+          organization
         })
         return acc
       }, [])
@@ -103,7 +104,7 @@ exports.saveNewEmployee = async (data = {}, res) => {
     newEmployee.save()
 
     res.status(200).json({
-      success: 'Работник успешно зарегистрирован и отправлено письмо на почту!'
+      success: 'Работник успешно зарегистрирован и ему отправлено письмо на почту!'
     })
   } catch (err) {
     res.status(500).json({ msg: err.message })
@@ -134,6 +135,7 @@ exports.getEmployeeById = (_id, res) => {
 exports.saveModifiedEmployee = (data = {}, res) => {
   const { gender, name, phone, roles, surname, department, userId } = data
 
+
   return User.findOneAndUpdate({ _id: userId }, { gender, name, phone, role: roles, surname, department }, { new: true})
     .exec((err, user) => {
     if (err) {
@@ -142,4 +144,22 @@ exports.saveModifiedEmployee = (data = {}, res) => {
 
     res.status(200).json({ success: 'Данные пользователя успешно изменены!', user })
   })
+}
+
+/**
+ * saveDismissedEmployee. Finds an employee in DB and changes the status of isSacked to true.
+ * @param {string} userId
+ * @param {object} res
+ * @return {*}
+ */
+exports.saveDismissedEmployee = (userId,res) => {
+  return User.findOneAndUpdate({ _id: userId }, { isSacked: true }, { new: true})
+    .exec((err, user) => {
+      if (err) {
+        return res.status(500).json({ msg: err.message })
+      }
+
+      res.status(200).json({ success: 'Работник успешно уволен!', user })
+    }
+  )
 }

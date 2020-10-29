@@ -1,4 +1,4 @@
-const { saveNewEmployee, getEmployeesByOrgCode, getEmployeeById, saveModifiedEmployee } = require('../services/employee.service')
+const { saveNewEmployee, getEmployeesByOrgCode, getEmployeeById, saveModifiedEmployee, saveDismissedEmployee } = require('../services/employee.service')
 const { verifyTokenFromReq } = require('../utils/verify-token-from-req')
 
 exports.getAllEmployees = (req, res) => {
@@ -22,4 +22,9 @@ exports.createEmployee = async (req, res) => {
 
 exports.editEmployee = (req, res) => {
   saveModifiedEmployee(req.body, res)
+}
+
+exports.dismissEmployee = (req, res) => {
+  const { userId } = req.body
+  saveDismissedEmployee(userId, res)
 }
