@@ -37,11 +37,11 @@ exports.getEmployeesByOrgCode = (orgId, res) => {
 
       for (let i = 0; i < convertingEmployees.length; i++) {
         for (let j = 0; j < convertingEmployees[i].role.length; j++) {
-          if (convertingEmployees[i].role[j].code === 3) {
+          if (+convertingEmployees[i].role[j].code === 3) {
             owners += 1
-          } else if (convertingEmployees[i].role[j].code === 2) {
+          } else if (+convertingEmployees[i].role[j].code === 2) {
             managers += 1
-          } else if (convertingEmployees[i].role[j].code === 0)
+          } else if (+convertingEmployees[i].role[j].code === 0)
             workers += 1
         }
       }
@@ -132,51 +132,92 @@ exports.getEmployeeById = (_id, res) => {
     })
 }
 
-exports.saveModifiedEmployee = (data = {}, res) => {
+/**
+ *
+ * @param {object} data
+ * @param {string} editorId
+ * @param {object} res
+ * @return {*}
+ */
+exports.saveModifiedEmployee = async (data = {}, editorId ,res) => {
   const { gender, name, phone, roles, surname, department, userId } = data
 
-  return User.findOneAndUpdate({ _id: userId }, { gender, name, phone, role: roles, surname, department }, { new: true})
-    .exec((err, user) => {
-    if (err) {
-      return res.status(500).json({ msg: err.message })
-    }
+  try {
+    const foundUsers = await User.find({ _id: { $in: [editorId, userId] } })
 
-    res.status(200).json({ success: 'Данные пользователя успешно изменены!', user })
-  })
-}
-
-/**
- * saveDismissedEmployee. Finds an employee in DB and changes the status of isSacked to true.
- * @param {string} userId
- * @param {object} res
- * @return {*}
- */
-exports.saveDismissedEmployee = (userId,res) => {
-  return User.findOneAndUpdate({ _id: userId }, { isSacked: true }, { new: true})
-    .exec((err, user) => {
-      if (err) {
-        return res.status(500).json({ msg: err.message })
+    const permissions = foundUsers.reduce((acc, user) => {
+      return {
+        ...acc,
+        [user._id]: user.role
       }
+    }, {})
 
-      res.status(200).json({ success: 'Работник успешно уволен!', user })
+    if (permissions[editorId].length < permissions[userId].length) {
+      return res.status(400).json({ error: 'Вы не можете уволить работника. Причина: Не хватает прав доступа' })
     }
-  )
-}
 
-/**
- * saveDismissedEmployee. Finds an employee in DB and changes the status of isSacked to false..
- * @param {string} userId
- * @param {object} res
- * @return {*}
- */
-exports.saveRecoverEmployee = (userId, res) => {
-  return User.findOneAndUpdate({ _id: userId }, { isSacked: false }, { new: true})
-    .exec((err, user) => {
+
+    User.findOneAndUpdate({ _id: userId }, { gender, name, phone, role: roles, surname, department }, { new: true })
+      .exec((err, user) => {
         if (err) {
           return res.status(500).json({ msg: err.message })
         }
 
-        res.status(200).json({ success: 'Работник успешно восстановлен!', user })
+        res.status(200).json({ success: 'Данные пользователя успешно изменены!', user })
+      })
+
+  } catch (err) {
+    res.status(500).json({ msg: err.message })
+  }
+}
+
+const dismissOrRecoverEmployee = async (data, value, res) => {
+  const { _id, userId } = data
+
+  try {
+    const foundUsers = await User.find({ _id: { $in: [_id, userId] } })
+
+    const permissions = foundUsers.reduce((acc, user) => {
+      return {
+        ...acc,
+        [user._id]: user.role
       }
-    )
+    }, {})
+
+    if (permissions[_id].length < permissions[userId].length) {
+      return res.status(400).json({ error: 'Вы не можете уволить работника. Причина: Не хватает прав доступа' })
+    }
+
+    User.findOneAndUpdate({ _id: userId }, { isSacked: value }, { new: true })
+      .exec((err, user) => {
+          if (err) {
+            return res.status(500).json({ msg: err.message })
+          }
+
+          res.status(200).json({ success: 'Работник успешно уволен!', user })
+        }
+      )
+  } catch (err) {
+    res.status(500).json({ msg: err.message })
+  }
+}
+
+/**
+ * saveDismissedEmployee. Finds an employee in DB and changes the status of isSacked to true.
+ * @param {object} data
+ * @param {object} res
+ * @return {*}
+ */
+exports.saveDismissedEmployee = async (data = {}, res) => {
+ await dismissOrRecoverEmployee(data, true, res)
+}
+
+/**
+ * saveDismissedEmployee. Finds an employee in DB and changes the status of isSacked to false..
+ * @param {object} data
+ * @param {object} res
+ * @return {*}
+ */
+exports.saveRecoverEmployee = async (data = {}, res) => {
+  await dismissOrRecoverEmployee(data, false, res)
 }

@@ -21,15 +21,29 @@ exports.createEmployee = async (req, res) => {
 }
 
 exports.editEmployee = (req, res) => {
-  saveModifiedEmployee(req.body, res)
+  const { _id } = req.user
+
+  saveModifiedEmployee(req.body, _id, res)
 }
 
 exports.dismissEmployee = (req, res) => {
   const { userId } = req.body
-  saveDismissedEmployee(userId, res)
+  const { _id } = req.user
+
+  if (_id === userId) {
+    return res.status(400).json({ error: 'Вы не можете уволить самого себя!' })
+  }
+
+  saveDismissedEmployee({ _id, userId }, res)
 }
 
 exports.recoverEmployee = (req, res) => {
   const { userId } = req.body
-  saveRecoverEmployee(userId, res)
+  const { _id } = req.user
+
+  if (_id === userId) {
+    return res.status(400).json({ error: 'Вы не можете восстановить самого себя!' })
+  }
+
+  saveRecoverEmployee({ _id, userId }, res)
 }

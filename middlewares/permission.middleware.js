@@ -8,6 +8,6 @@ module.exports = (req, res, next) => {
   if (!result) {
     return res.status(400).json({ error: "У вас нету прав для совершения данной операции." })
   }
-
+  
   next()
 }
