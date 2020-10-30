@@ -1,17 +1,8 @@
 const User = require('../models/user.model')
 const Token = require('../models/token.model')
 const registrationMail = require('../emails/registration')
-
+const emailTransporter = require('../emails/email-transporter')
 const { generateToken } = require('../utils/generate-token')
-const { createTransport } = require('nodemailer')
-
-const transporter = createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_FROM,
-    pass: process.env.EMAIL_PASS
-  }
-})
 
 /**
  * verifyEmail. Looking for token, user - verify account, save verify user and return response.
@@ -54,7 +45,6 @@ exports.verifyEmail = async ({ email, token }, res) => {
   } catch (err) {
     res.status(500).json({ msg: err.message })
   }
-
 }
 
 /**
@@ -78,12 +68,9 @@ exports.generateAndSaveNewConfirmLink = async (email, res) => {
 
     await token.save()
 
-    await transporter.sendMail(registrationMail(user.email, link), (err) => {
-      if (err) {
-        return res.status(500).json({ msg: err.message })
-      }
-      res.status(200).json({ success: 'Ссылка для подтверждения почты, успешно отправлена!' })
-    })
+    await emailTransporter.sendMail(registrationMail(user.email, link, user.name))
+
+    res.status(200).json({ success: 'Ссылка для подтверждения почты, успешно отправлена!' })
   } catch (err) {
     res.status(500).json({ msg: err.message })
   }

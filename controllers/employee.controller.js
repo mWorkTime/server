@@ -1,4 +1,4 @@
-const { saveNewEmployee, getEmployeesByOrgCode, getEmployeeById, saveModifiedEmployee, saveDismissedEmployee } = require('../services/employee.service')
+const { saveNewEmployee, getEmployeesByOrgCode, getEmployeeById, saveModifiedEmployee, saveDismissedEmployee, saveRecoverEmployee } = require('../services/employee.service')
 const { verifyTokenFromReq } = require('../utils/verify-token-from-req')
 
 exports.getAllEmployees = (req, res) => {
@@ -27,4 +27,9 @@ exports.editEmployee = (req, res) => {
 exports.dismissEmployee = (req, res) => {
   const { userId } = req.body
   saveDismissedEmployee(userId, res)
+}
+
+exports.recoverEmployee = (req, res) => {
+  const { userId } = req.body
+  saveRecoverEmployee(userId, res)
 }

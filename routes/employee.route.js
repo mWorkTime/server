@@ -2,7 +2,7 @@ const express = require('express')
 const requireLogin = require('../middlewares/auth.middleware')
 const requireSameOrganization = require('../middlewares/organization.middleware')
 const requirePermission = require('../middlewares/permission.middleware')
-const { getAllEmployees, createEmployee, getEmployee, editEmployee, dismissEmployee } = require('../controllers/employee.controller')
+const { getAllEmployees, createEmployee, getEmployee, editEmployee, dismissEmployee, recoverEmployee } = require('../controllers/employee.controller')
 const router = express.Router()
 
 // validation middleware
@@ -17,5 +17,6 @@ router.post('/create', requireLogin, requirePermission, employeeRegisterValidato
 
 router.put('/edit', requireLogin, requireSameOrganization, requirePermission, editEmployee)
   .put('/dismiss', requireLogin, requireSameOrganization, requirePermission, dismissEmployee)
+  .put('/recover', requireLogin, requireSameOrganization, requirePermission, recoverEmployee)
 
 module.exports = router

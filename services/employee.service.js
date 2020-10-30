@@ -135,7 +135,6 @@ exports.getEmployeeById = (_id, res) => {
 exports.saveModifiedEmployee = (data = {}, res) => {
   const { gender, name, phone, roles, surname, department, userId } = data
 
-
   return User.findOneAndUpdate({ _id: userId }, { gender, name, phone, role: roles, surname, department }, { new: true})
     .exec((err, user) => {
     if (err) {
@@ -162,4 +161,22 @@ exports.saveDismissedEmployee = (userId,res) => {
       res.status(200).json({ success: 'Работник успешно уволен!', user })
     }
   )
+}
+
+/**
+ * saveDismissedEmployee. Finds an employee in DB and changes the status of isSacked to false..
+ * @param {string} userId
+ * @param {object} res
+ * @return {*}
+ */
+exports.saveRecoverEmployee = (userId, res) => {
+  return User.findOneAndUpdate({ _id: userId }, { isSacked: false }, { new: true})
+    .exec((err, user) => {
+        if (err) {
+          return res.status(500).json({ msg: err.message })
+        }
+
+        res.status(200).json({ success: 'Работник успешно восстановлен!', user })
+      }
+    )
 }
