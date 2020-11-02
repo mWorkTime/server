@@ -27,3 +27,19 @@ exports.getUserFromDB = (userId, res) => {
     }
   )
 }
+
+/**
+ * getUserData. Looking for user by id in DB and return response with data about user
+ * @param {string} id
+ * @param {object} res
+ * @return {*}
+ */
+exports.getUserData = (id, res) => {
+  return User.findOne({ _id: id }).exec((err, user) => {
+    if (err) {
+      return res.status(500).json({ msg: err.message })
+    }
+
+    res.status(200).json({ user })
+  })
+}
