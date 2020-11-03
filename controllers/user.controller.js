@@ -1,5 +1,5 @@
 const { verifyTokenFromReq } = require('../utils/verify-token-from-req')
-const { getUserFromDB, getUserData, saveModifiedUserRegular } = require('../services/user.service')
+const { getUserFromDB, getUserData, saveModifiedUserRegular, confirmUserPassword } = require('../services/user.service')
 
 exports.getUser = (req, res) => {
   const { _id } = verifyTokenFromReq(req)
@@ -17,4 +17,11 @@ exports.editUserRegular = (req, res) => {
   const { _id } = req.user
 
   saveModifiedUserRegular(_id, req.body, res)
+}
+
+exports.confirmPassword = (req, res) => {
+  const { _id } = req.user
+  const { password } = req.body
+
+  confirmUserPassword(_id, password, res)
 }

@@ -35,7 +35,7 @@ exports.getUserFromDB = (userId, res) => {
  * @return {*}
  */
 exports.getUserData = (id, res) => {
-  return User.findOne({ _id: id }, 'name surname phone gender email').exec((err, user) => {
+  return User.findOne({ _id: id }, 'name surname phone gender').exec((err, user) => {
     if (err) {
       return res.status(500).json({ msg: err.message })
     }
@@ -54,12 +54,35 @@ exports.getUserData = (id, res) => {
 exports.saveModifiedUserRegular = (id, data, res) => {
   const { name, surname, phone, gender } = data
   return User.findOneAndUpdate({ _id: id }, { name, surname, phone, gender }, { new: true })
-    .select('name surname phone gender email')
+    .select('name surname phone gender email role isVerified isSacked isOwner department createdAt')
     .exec((err, user) => {
       if (err) {
         return res.status(500).json({ msg: err.message })
       }
 
       res.status(200).json({ success: 'Данные упешно обновлены', user })
+    })
+}
+
+/**
+ * confirmUserPassword. Gets user password from db and check.
+ * @param {string} userId
+ * @param {string} password
+ * @param {object} res
+ * @return {*}
+ */
+exports.confirmUserPassword = (userId, password, res) => {
+  console.log(password)
+  return User.findOne({ _id: userId })
+    .exec((err, user) => {
+      if (err) {
+        return res.status(500).json({ msg: err.message })
+      }
+
+      if (!user.authenticate(password)) {
+        return res.status(400).json({ error: 'Неверный пароль!' })
+      }
+
+      res.status(200).json({ success: 'Пароль верный. Можете сменить пароль.' })
     })
 }
