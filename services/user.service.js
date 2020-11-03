@@ -35,11 +35,31 @@ exports.getUserFromDB = (userId, res) => {
  * @return {*}
  */
 exports.getUserData = (id, res) => {
-  return User.findOne({ _id: id }).exec((err, user) => {
+  return User.findOne({ _id: id }, 'name surname phone gender email').exec((err, user) => {
     if (err) {
       return res.status(500).json({ msg: err.message })
     }
 
     res.status(200).json({ user })
   })
+}
+
+/**
+ * saveModifiedUserRegular.
+ * @param {string} id
+ * @param {object} data
+ * @param {object} res
+ * @return {*}
+ */
+exports.saveModifiedUserRegular = (id, data, res) => {
+  const { name, surname, phone, gender } = data
+  return User.findOneAndUpdate({ _id: id }, { name, surname, phone, gender }, { new: true })
+    .select('name surname phone gender email')
+    .exec((err, user) => {
+      if (err) {
+        return res.status(500).json({ msg: err.message })
+      }
+
+      res.status(200).json({ success: 'Данные упешно обновлены', user })
+    })
 }
