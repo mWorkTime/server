@@ -1,9 +1,9 @@
 const User = require('../models/user.model')
 const Organization = require('../models/organization.model')
-const Role = require('../models/role.model')
 const Department = require('../models/department.model')
 const { removeWhitespace } = require('../utils/remove-whitespace')
 const { sanitizeNumberPhone } = require('../utils/sanitize-phone-number')
+const { getCountEmployees } = require('../utils/get-count-employees')
 const emailTransporter = require('../emails/email-transporter')
 const registrationEmployee = require('../emails/registration-employee')
 const crypto = require('crypto')
@@ -31,28 +31,13 @@ exports.getEmployeesByOrgCode = (orgId, res) => {
         return acc
       }, [])
 
-      let managers = 0,
-        owners = 0,
-        workers = 0
-
-      for (let i = 0; i < convertingEmployees.length; i++) {
-        for (let j = 0; j < convertingEmployees[i].role.length; j++) {
-          if (+convertingEmployees[i].role[j].code === 3) {
-            owners += 1
-          } else if (+convertingEmployees[i].role[j].code === 2) {
-            managers += 1
-          } else if (+convertingEmployees[i].role[j].code === 0)
-            workers += 1
-        }
-      }
-
       res.status(200).json({
         employees: [...convertingEmployees],
         quantity: {
           total: employees.length,
-          managers,
-          owners,
-          workers: workers - owners - managers
+          managers: getCountEmployees(employees, 2),
+          owners: getCountEmployees(employees, 3),
+          workers: getCountEmployees(employees, 0)
         }
       })
     })
@@ -65,7 +50,7 @@ exports.getEmployeesByOrgCode = (orgId, res) => {
  * @return {Promise<this>}
  */
 exports.saveNewEmployee = async (data = {}, res) => {
-  const { orgId, roles, name, surname, email, phone, gender, department: { id } } = data
+  const { orgId, role, name, surname, email, phone, gender, department: { id } } = data
 
   try {
     const employee = await User.findOne({ email })
@@ -82,21 +67,13 @@ exports.saveNewEmployee = async (data = {}, res) => {
     }
 
     const password = crypto.randomBytes(4).toString('hex')
-    const foundRoles = await Role.find({ _id: { $in: roles } })
     const foundDepartment = await Department.findOne({ _id: id })
 
     const newEmployee = new User({
       name, surname, phone: phoneNumber, email, gender, password,
-      isVerified: true, organization: organization._id
+      isVerified: true, organization: organization._id, role
     })
     newEmployee.department = { name: foundDepartment.name }
-
-    for (let i = 0; i < foundRoles.length; i++) {
-      newEmployee.role.push({
-        name: foundRoles[i]['name'],
-        code: foundRoles[i]['role-code']
-      })
-    }
 
     await newEmployee.validate()
     await emailTransporter.sendMail(registrationEmployee(email, password, organization.name, name))
@@ -140,7 +117,7 @@ exports.getEmployeeById = (_id, res) => {
  * @return {*}
  */
 exports.saveModifiedEmployee = async (data = {}, editorId ,res) => {
-  const { gender, name, phone, roles, surname, department, userId } = data
+  const { gender, name, phone, role, surname, department, userId } = data
   const phoneNumber = sanitizeNumberPhone(removeWhitespace(phone))
 
   try {
@@ -149,16 +126,15 @@ exports.saveModifiedEmployee = async (data = {}, editorId ,res) => {
     const permissions = foundUsers.reduce((acc, user) => {
       return {
         ...acc,
-        [user._id]: user.role
+        [user._id]: user.role.code
       }
     }, {})
 
-    if (permissions[editorId].length < permissions[userId].length) {
+    if (permissions[editorId] < permissions[userId]) {
       return res.status(400).json({ error: 'Вы не можете изменить данные работника. Причина: Не хватает прав доступа' })
     }
 
-
-    User.findOneAndUpdate({ _id: userId }, { gender, name, phone: phoneNumber, role: roles, surname, department }, { new: true })
+    User.findOneAndUpdate({ _id: userId }, { gender, name, phone: phoneNumber, role, surname, department }, { new: true })
       .exec((err, user) => {
         if (err) {
           return res.status(500).json({ msg: err.message })
@@ -181,11 +157,11 @@ const dismissOrRecoverEmployee = async (data, value, res) => {
     const permissions = foundUsers.reduce((acc, user) => {
       return {
         ...acc,
-        [user._id]: user.role
+        [user._id]: user.role.code
       }
     }, {})
 
-    if (permissions[_id].length < permissions[userId].length) {
+    if (permissions[_id] < permissions[userId]) {
       return res.status(400).json({ error: 'Вы не можете уволить работника. Причина: Не хватает прав доступа' })
     }
 

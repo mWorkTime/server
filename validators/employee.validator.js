@@ -9,7 +9,7 @@ exports.employeeRegisterValidator = [
     .not()
     .isEmpty()
     .withMessage('Пожалуйста, введите фамилию работника!'),
-  check('roles')
+  check('role')
     .not()
     .isEmpty()
     .withMessage('Пожалуйста, выберите роль для работника!'),
