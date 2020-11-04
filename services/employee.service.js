@@ -141,6 +141,7 @@ exports.getEmployeeById = (_id, res) => {
  */
 exports.saveModifiedEmployee = async (data = {}, editorId ,res) => {
   const { gender, name, phone, roles, surname, department, userId } = data
+  const phoneNumber = sanitizeNumberPhone(removeWhitespace(phone))
 
   try {
     const foundUsers = await User.find({ _id: { $in: [editorId, userId] } })
@@ -153,11 +154,11 @@ exports.saveModifiedEmployee = async (data = {}, editorId ,res) => {
     }, {})
 
     if (permissions[editorId].length < permissions[userId].length) {
-      return res.status(400).json({ error: 'Вы не можете уволить работника. Причина: Не хватает прав доступа' })
+      return res.status(400).json({ error: 'Вы не можете изменить данные работника. Причина: Не хватает прав доступа' })
     }
 
 
-    User.findOneAndUpdate({ _id: userId }, { gender, name, phone, role: roles, surname, department }, { new: true })
+    User.findOneAndUpdate({ _id: userId }, { gender, name, phone: phoneNumber, role: roles, surname, department }, { new: true })
       .exec((err, user) => {
         if (err) {
           return res.status(500).json({ msg: err.message })

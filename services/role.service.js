@@ -1,5 +1,4 @@
 const Role = require('../models/role.model')
-const { transformArray } = require('../utils/transform-array')
 
 /**
  * getRolesFromDB. Gets roles by code-role from DB.

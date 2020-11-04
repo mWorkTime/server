@@ -1,5 +1,5 @@
 const { model, Schema, Types } = require('mongoose')
-const crypto = require('crypto')
+const { hashedPassword } = require('../utils/hashed-password')
 
 const userSchema = new Schema({
   name: {
@@ -74,10 +74,7 @@ userSchema.methods = {
   encryptPassword: function (password) {
     if (!password) return ''
     try {
-      return crypto
-        .createHmac('sha1', this.salt)
-        .update(password)
-        .digest('hex')
+      return hashedPassword(password, this.salt)
     } catch (err) {
       return ''
     }

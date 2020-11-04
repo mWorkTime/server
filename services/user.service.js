@@ -1,4 +1,7 @@
 const User = require('../models/user.model')
+const { hashedPassword } = require('../utils/hashed-password')
+const { sanitizeNumberPhone } = require('../utils/sanitize-phone-number')
+const { removeWhitespace } = require('../utils/remove-whitespace')
 
 /**
  * getUserFromDB. Looking for user by id in DB and return response with data about user, organization.
@@ -53,7 +56,9 @@ exports.getUserData = (id, res) => {
  */
 exports.saveModifiedUserRegular = (id, data, res) => {
   const { name, surname, phone, gender } = data
-  return User.findOneAndUpdate({ _id: id }, { name, surname, phone, gender }, { new: true })
+  const phoneNumber = sanitizeNumberPhone(removeWhitespace(phone))
+
+  return User.findOneAndUpdate({ _id: id }, { name, surname, phone: phoneNumber, gender }, { new: true })
     .select('name surname phone gender email role isVerified isSacked isOwner department createdAt')
     .exec((err, user) => {
       if (err) {
@@ -72,7 +77,6 @@ exports.saveModifiedUserRegular = (id, data, res) => {
  * @return {*}
  */
 exports.confirmUserPassword = (userId, password, res) => {
-  console.log(password)
   return User.findOne({ _id: userId })
     .exec((err, user) => {
       if (err) {
@@ -84,5 +88,26 @@ exports.confirmUserPassword = (userId, password, res) => {
       }
 
       res.status(200).json({ success: 'Пароль верный. Можете сменить пароль.' })
+    })
+}
+
+/**
+ * saveUserPassword. Save new user password in DB.
+ * @param {string} userId
+ * @param {string} password
+ * @param {object} res
+ * @return {*}
+ */
+exports.saveUserPassword = (userId, password, res) => {
+  const newSalt = Math.round(new Date().valueOf() * Math.random()) + ''
+  const newPassword = hashedPassword(password, newSalt)
+
+  return User.findOneAndUpdate({ _id: userId }, { salt: newSalt, hashed_password: newPassword })
+    .exec((err) => {
+      if (err) {
+        return res.status(500).json({ msg: err.message })
+      }
+
+      res.status(200).json({ success: 'Пароль успешно изменён!' })
     })
 }
