@@ -40,7 +40,7 @@ const userSchema = new Schema({
     default: 'unknown'
   },
   department: { type: Object },
-  role: [{ type: Object }],
+  role: { type: Object },
   isVerified: { type: Boolean, default: false },
   salt: String,
   resetPasswordLink: {

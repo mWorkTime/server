@@ -1,8 +1,7 @@
 const { getRolesFromDB } = require('../services/role.service')
-const { verifyTokenFromReq } = require('../utils/verify-token-from-req')
 
 exports.getRoles = (req, res) => {
-  const { roles } = verifyTokenFromReq(req)
+  const { roles } = req.user
 
   getRolesFromDB(roles, res)
 }

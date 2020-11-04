@@ -16,11 +16,10 @@ const { generateToken } = require('../utils/generate-token')
  */
 exports.saveNewUserAndOrganization = async (req, res) => {
   const { name, email, organization, password } = req.body
-  const codes = [0, 2, 3]
 
   try {
-    const roles = await Role.find({ 'role-code': { $in: codes } })
-    const newUser = new User({ name, email, password, isOwner: true })
+    const findRole = await Role.findOne({ 'role-code': 3 })
+    const newUser = new User({ name, email, password, isOwner: true, role: { name: findRole.name, code: findRole['role-code'] } })
     const department = await Department.findOne({ name: 'администрация' })
 
     if (!department) {
@@ -33,13 +32,6 @@ exports.saveNewUserAndOrganization = async (req, res) => {
 
     const newOrganization = new Organization({ name: organization })
     newUser.organization = newOrganization._id
-
-    for (let i = 0; i < roles.length; i++) {
-      newUser.role.push({
-        name: roles[i]['name'],
-        code: roles[i]['role-code']
-      })
-    }
 
     const token = new Token({
       _userId: newUser._id,
@@ -89,13 +81,13 @@ exports.getUserAndLogin = (email, password, expiresTime, res) => {
       }
 
       const { _id, isOwner, role } = user
+      let convertRoles = []
 
-      const convertRoles = role.reduce((acc, item) => {
-        acc.push(item.code)
-        return acc
-      },[])
+      for (let i = 0; i < role.code + 1; i++) {
+        convertRoles.push(i)
+      }
 
-      const token = generateToken({ _id, isOwner, orgId: user.organization._id, roles: convertRoles }, { expiresIn: expiresTime })
+      const token = generateToken({ _id, isOwner, orgId: user.organization._id, roles: convertRoles, role: role.code }, { expiresIn: expiresTime })
       res.cookie('token', token, { expiresIn: expiresTime })
 
       res.status(200).json({
@@ -114,7 +106,7 @@ exports.getUserAndLogin = (email, password, expiresTime, res) => {
  * @return {*}
  */
 exports.saveTokenAndSendNewToken = (res, data = {}) => {
-  const { headerToken, decodedToken: { _id, isOwner, orgId, roles }, nameOrg, expiresTime, refreshTime } = data
+  const { headerToken, decodedToken: { _id, isOwner, orgId, roles, role }, nameOrg, expiresTime, refreshTime } = data
 
   return BlockList.findOne({ token: headerToken }).exec((err, token) => {
       if (err) {
@@ -131,7 +123,7 @@ exports.saveTokenAndSendNewToken = (res, data = {}) => {
         }
 
         res.status(200).json({
-          token: generateToken({ _id, isOwner, orgId, roles }, { expiresIn: expiresTime }),
+          token: generateToken({ _id, isOwner, orgId, roles, role }, { expiresIn: expiresTime }),
           refresh: refreshTime,
           nameOrg,
           user: _id,
