@@ -1,10 +1,12 @@
 const { saveNewEmployee, getEmployeesByOrgCode, getEmployeeById, saveModifiedEmployee, saveDismissedEmployee, saveRecoverEmployee } = require('../services/employee.service')
-const { verifyTokenFromReq } = require('../utils/verify-token-from-req')
 
 exports.getAllEmployees = (req, res) => {
-  const { orgId } = verifyTokenFromReq(req)
+  const { orgId } = req.user
+  const currentPage = parseInt(req.query.currentPage)
+  const limit = parseInt(req.query.limit)
 
-  getEmployeesByOrgCode(orgId, res)
+  const data = { orgId, currentPage, limit }
+  getEmployeesByOrgCode(data, res)
 }
 
 exports.getEmployee = (req, res) => {
@@ -14,7 +16,7 @@ exports.getEmployee = (req, res) => {
 }
 
 exports.createEmployee = async (req, res) => {
-  const { _id, orgId } = verifyTokenFromReq(req)
+  const { _id, orgId } = req.user
   const { role, name, surname, email, phone, gender, department } = req.body
 
   await saveNewEmployee({ _id, orgId, role, name, surname, email, phone, gender, department }, res)
@@ -31,7 +33,8 @@ exports.dismissEmployee = (req, res) => {
   const { _id } = req.user
 
   if (_id === userId) {
-    return res.status(400).json({ error: 'Вы не можете уволить самого себя!' })
+    res.status(400).json({ error: 'Вы не можете уволить самого себя!' })
+    return
   }
 
   saveDismissedEmployee({ _id, userId }, res)
@@ -42,7 +45,8 @@ exports.recoverEmployee = (req, res) => {
   const { _id } = req.user
 
   if (_id === userId) {
-    return res.status(400).json({ error: 'Вы не можете восстановить самого себя!' })
+    res.status(400).json({ error: 'Вы не можете восстановить самого себя!' })
+    return
   }
 
   saveRecoverEmployee({ _id, userId }, res)

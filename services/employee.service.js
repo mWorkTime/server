@@ -10,37 +10,41 @@ const crypto = require('crypto')
 
 /**
  * getEmployeesByOrgCode. Gets employees by organization code from DB.
- * @param {string} orgId
+ * @param {object} data
  * @param {object} res
  * @return {*}
  */
-exports.getEmployeesByOrgCode = (orgId, res) => {
-  return User.find({ organization: orgId })
-    .exec((err, employees) => {
-      if (err) {
-        return res.status(500).json({ msg: err.message })
-      }
+exports.getEmployeesByOrgCode = async (data, res) => {
+  const { orgId, limit, currentPage } = data
+  const skip = currentPage * limit - limit
 
-      const convertingEmployees = employees.reduce((acc, employee) => {
-        const { isSacked, isVerified, name, department, createdAt, email, role, _id, organization } = employee
-        acc.push({
-          id: _id, isSacked, isVerified, name: `${name} ${employee.surname || ''}`,
-          department, createdAt, email, role, phone: employee.phone || 'не указан',
-          organization
-        })
-        return acc
-      }, [])
+  try {
+    const totalEmployee = await User.find({ organization: orgId })
+    const employees = await User.find({ organization: orgId }).skip(skip).limit(limit)
 
-      res.status(200).json({
-        employees: [...convertingEmployees],
-        quantity: {
-          total: employees.length,
-          managers: getCountEmployees(employees, 2),
-          owners: getCountEmployees(employees, 3),
-          workers: getCountEmployees(employees, 0)
-        }
+    const convertingEmployees = employees.reduce((acc, employee) => {
+      const { isSacked, isVerified, name, department, createdAt, email, role, _id, organization } = employee
+      acc.push({
+        id: _id, isSacked, isVerified, name: `${name} ${employee.surname || ''}`,
+        department, createdAt, email, role, phone: employee.phone || 'не указан',
+        organization
       })
+      return acc
+    }, [])
+
+    res.status(200).json({
+      employees: [...convertingEmployees],
+      quantity: {
+        total: totalEmployee.length,
+        managers: getCountEmployees(totalEmployee, 2),
+        owners: getCountEmployees(totalEmployee, 3),
+        workers: getCountEmployees(totalEmployee, 0)
+      },
+      currentPage
     })
+  } catch (err) {
+    res.status(500).json({ msg: err.message })
+  }
 }
 
 /**
@@ -57,13 +61,15 @@ exports.saveNewEmployee = async (data = {}, res) => {
     const phoneNumber = sanitizeNumberPhone(removeWhitespace(phone))
 
     if (employee) {
-      return res.status(400).json({ error: 'Пользователь с таким email-ом уже существует!' })
+      res.status(400).json({ error: 'Пользователь с таким email-ом уже существует!' })
+      return
     }
 
     const organization = await Organization.findOne({ _id: orgId })
 
     if (!organization) {
-      return res.status(400).json({ error: 'Такой организации не существует в нашей системе.' })
+      res.status(400).json({ error: 'Такой организации не существует в нашей системе.' })
+      return
     }
 
     const password = crypto.randomBytes(4).toString('hex')
@@ -98,11 +104,13 @@ exports.getEmployeeById = (_id, res) => {
   return User.findOne({ _id })
     .exec((err, user) => {
       if (err) {
-        return res.status(500).json({ msg: err.message })
+        res.status(500).json({ msg: err.message })
+        return
       }
 
       if (!user) {
-        return res.status(400).json({ error: 'Такого пользователя не существует.' })
+        res.status(400).json({ error: 'Такого пользователя не существует.' })
+        return
       }
 
       res.status(200).json({ user })
@@ -131,13 +139,15 @@ exports.saveModifiedEmployee = async (data = {}, editorId ,res) => {
     }, {})
 
     if (permissions[editorId] < permissions[userId]) {
-      return res.status(400).json({ error: 'Вы не можете изменить данные работника. Причина: Не хватает прав доступа' })
+      res.status(400).json({ error: 'Вы не можете изменить данные работника. Причина: Не хватает прав доступа' })
+      return
     }
 
     User.findOneAndUpdate({ _id: userId }, { gender, name, phone: phoneNumber, role, surname, department }, { new: true })
       .exec((err, user) => {
         if (err) {
-          return res.status(500).json({ msg: err.message })
+          res.status(500).json({ msg: err.message })
+          return
         }
 
         res.status(200).json({ success: 'Данные пользователя успешно изменены!', user })
@@ -149,7 +159,7 @@ exports.saveModifiedEmployee = async (data = {}, editorId ,res) => {
 }
 
 const dismissOrRecoverEmployee = async (data, value, res) => {
-  const { _id, userId } = data
+  const { _id, userId, text } = data
 
   try {
     const foundUsers = await User.find({ _id: { $in: [_id, userId] } })
@@ -168,10 +178,11 @@ const dismissOrRecoverEmployee = async (data, value, res) => {
     User.findOneAndUpdate({ _id: userId }, { isSacked: value }, { new: true })
       .exec((err, user) => {
           if (err) {
-            return res.status(500).json({ msg: err.message })
+            res.status(500).json({ msg: err.message })
+            return
           }
 
-          res.status(200).json({ success: 'Работник успешно уволен!', user })
+          res.status(200).json({ success: text, user })
         }
       )
   } catch (err) {
@@ -186,7 +197,8 @@ const dismissOrRecoverEmployee = async (data, value, res) => {
  * @return {*}
  */
 exports.saveDismissedEmployee = async (data = {}, res) => {
- await dismissOrRecoverEmployee(data, true, res)
+  const necessaryData = {...data, text: 'Работник успешно уволен!'}
+ await dismissOrRecoverEmployee(necessaryData, true, res)
 }
 
 /**
@@ -196,5 +208,6 @@ exports.saveDismissedEmployee = async (data = {}, res) => {
  * @return {*}
  */
 exports.saveRecoverEmployee = async (data = {}, res) => {
-  await dismissOrRecoverEmployee(data, false, res)
+  const necessaryData = {...data, text: 'Работник успешно восстановлен!'}
+  await dismissOrRecoverEmployee(necessaryData, false, res)
 }

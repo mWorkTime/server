@@ -5,6 +5,7 @@ exports.roles = [
   { name: 'Moderator', 'role-code': 4 },
   { name: 'Owner', 'role-code': 3 },
   { name: 'Manager', 'role-code': 2 },
+  { name: 'Interim-manager', 'role-code': 1 },
   { name: 'Employee', 'role-code': 0 }
 ]
 /**
