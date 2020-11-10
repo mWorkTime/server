@@ -1,8 +1,8 @@
 const express = require('express')
 const router = express.Router()
 const requireLogin = require('../middlewares/auth.middleware')
-const { getEmployeeAndTasks } = require('../controllers/task.controller')
+const { getEmployeesAndTasks } = require('../controllers/task.controller')
 
-router.get('/', requireLogin, getEmployeeAndTasks)
+router.get('/', requireLogin, getEmployeesAndTasks)
 
 module.exports = router

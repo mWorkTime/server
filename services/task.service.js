@@ -6,20 +6,20 @@ const User = require('../models/user.model')
  * @param {object} res
  * @return {Promise<void>}
  */
-exports.getEmployeeAndTasksById = async (data, res) => {
+exports.getEmployeesAndTasksById = async (data, res) => {
   const { _id, orgId } = data
 
   try {
-    const user = await User.findOne({ _id })
-    const department = user.department.name
+    const employee = await User.findOne({ _id })
+    const department = employee.department.name
 
-    if (user.role.code > 0) {
-      const foundUsers = await User.find({ department: { name: department }, organization: orgId })
-      res.status(200).json({ tasks: user.tasks, users: foundUsers })
+    if (employee.role.code > 0) {
+      const foundEmployees = await User.find({ department: { name: department }, organization: orgId })
+      res.status(200).json({ tasks: employee.tasks, employees: foundEmployees })
       return
     }
 
-    res.status(200).json({ tasks: user?.tasks, user })
+    res.status(200).json({ tasks: employee?.tasks })
   } catch (err) {
     res.status(500).json({ msg: err.message })
   }
