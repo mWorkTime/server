@@ -80,7 +80,7 @@ exports.getUserAndLogin = (email, password, expiresTime, res) => {
         return res.status(400).json({ error: 'Вы не можете войти в систему. Причина: Вас уволили!' })
       }
 
-      const { _id, isOwner, role } = user
+      const { _id, isOwner, role, name } = user
       let convertRoles = []
 
       for (let i = 0; i < role.code + 1; i++) {
@@ -93,6 +93,7 @@ exports.getUserAndLogin = (email, password, expiresTime, res) => {
       res.status(200).json({
         token,
         user: _id,
+        name,
         nameOrg: user.organization.name,
         exp: Math.floor(Date.now() / 1000 + expiresTime)
       })
@@ -106,13 +107,13 @@ exports.getUserAndLogin = (email, password, expiresTime, res) => {
  * @return {*}
  */
 exports.saveTokenAndSendNewToken = (res, data = {}) => {
-  const { headerToken, decodedToken: { _id, isOwner, orgId, roles, role }, nameOrg, expiresTime, refreshTime } = data
+  const { headerToken, decodedToken: { _id, isOwner, orgId, roles, role }, nameOrg, expiresTime, refreshTime, name } = data
 
   return BlockList.findOne({ token: headerToken }).exec((err, token) => {
       if (err) {
         return res.status(500).json({ msg: err.message })
       } else if (token) {
-        return res.status(422).json({ msg: 'Невозможно обновить токен.' })
+        return res.status(422).json({ error: 'Невозможно обновить токен.' })
       }
 
       const oldToken = new BlockList({ token: headerToken, expireAfterSeconds: 86400 })
@@ -127,6 +128,7 @@ exports.saveTokenAndSendNewToken = (res, data = {}) => {
           refresh: refreshTime,
           nameOrg,
           user: _id,
+          name,
           exp: Math.floor(Date.now() / 1000 + expiresTime),
           success: 'Токен успешно обновлён'
         })

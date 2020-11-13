@@ -34,6 +34,7 @@ exports.refreshToken = (req, res) => {
   const headerToken = req.headers.authorization.split(' ')[1]
   const refreshTime = parseInt(req.body.refresh)
   const nameOrg = req.body.nameOrg
+  const name = req.body.name
 
   if (!headerToken) {
     return res.status(422).json({ message: 'Token not found' })
@@ -45,6 +46,6 @@ exports.refreshToken = (req, res) => {
     return res.status(422).json({ error: 'Не удалось обновить токен, заново авторизируйтесь' })
   }
 
-  saveTokenAndSendNewToken(res, { headerToken, decodedToken, nameOrg, expiresTime, refreshTime })
+  saveTokenAndSendNewToken(res, { headerToken, decodedToken, nameOrg, name, expiresTime, refreshTime })
 }
 
