@@ -1,4 +1,6 @@
 const User = require('../models/user.model')
+const Task = require('../models/task.model')
+const File = require('../models/file.model')
 
 /**
  * getUsersOrTasksById. Depending on the user's role to return either users or tasks
@@ -28,6 +30,11 @@ exports.getEmployeesAndTasksById = async (data, res) => {
   }
 }
 
+/**
+ * getEmployees. Depending on the user's department to return either users.
+ * @param {object} data
+ * @param {object} res
+ */
 exports.getEmployees = (data, res) => {
   const { orgId, department } = data
 
@@ -41,3 +48,28 @@ exports.getEmployees = (data, res) => {
       res.status(200).json({ employees })
     })
 }
+
+/**
+ * saveNewTask.
+ * @param {object} data
+ * @param {object} res
+ * @return {Promise<void>}
+ */
+exports.saveNewTask = async (data, res) => {
+  const { name, desc, runtime, priority, userId, createdBy } = data
+
+  try {
+    const newTask = new Task({
+      name, desc, runtime, priority, user_id: userId, createdBy
+    })
+
+    await User.findOneAndUpdate({ _id: userId }, { '$push': { tasks: newTask._id } }, { upsert: true })
+    await newTask.save()
+
+    res.status(200).json({ success: 'Задача успешно сохранена', task: newTask._id })
+  } catch (err) {
+    res.status(500).json({ msg: err.message })
+  }
+}
+
+

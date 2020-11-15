@@ -1,4 +1,4 @@
-const { getEmployeesAndTasksById, getEmployees } = require('../services/task.service')
+const { getEmployeesAndTasksById, getEmployees, saveNewTask, saveFilesForTask } = require('../services/task.service')
 
 exports.getEmployeesAndTasks = async (req, res) => {
   const { _id, orgId } = req.user
@@ -12,3 +12,9 @@ exports.getEmployeesByDepartment = async (req, res) => {
 
   await getEmployees({ orgId, department }, res)
 }
+
+exports.createTask = async (req, res) => {
+  await saveNewTask(req.body, res)
+}
+
+
