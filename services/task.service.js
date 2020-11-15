@@ -108,7 +108,7 @@ exports.saveFilesForTask = async (files, id, res) => {
 
     await Task.findOneAndUpdate({ _id: id }, { filepath: arrFiles })
 
-    res.status(200).json({ success: 'Файл(ы) успешно загружен(ы)' })
+    res.status(200).json({ success: 'Файл(ы) для задачи успешно загружен(ы)' })
   } catch (err) {
     res.status(500).json({ msg: err.message })
   }
