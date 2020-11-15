@@ -11,5 +11,6 @@ router.get('/', requireLogin, getEmployeesAndTasks)
 router.post('/employees', requireLogin, getEmployeesByDepartment)
   .post('/create', requireLogin, requirePermission, createTask)
 
+router.put('/upload', requireLogin, fileMiddleware.array('files', 4), uploadFile)
 
 module.exports = router

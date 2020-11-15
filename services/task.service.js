@@ -72,4 +72,44 @@ exports.saveNewTask = async (data, res) => {
   }
 }
 
+/**
+ * saveFilesForTask. Serialize files and save them
+ * @param {array} files
+ * @param {string} id
+ * @param {object} res
+ * @return {Promise<void>}
+ */
+exports.saveFilesForTask = async (files, id, res) => {
+  try {
+    let newFiles
+    let arrFiles = []
 
+    if (files.length > 1) {
+      for (let i = 0; i < files.length; i++) {
+        newFiles = new File({
+          ...files[i],
+          'original-name': files[i].originalname,
+          ext: files[i].mimetype,
+          name: files[i].filename
+        })
+        arrFiles.push(files[i].path)
+        newFiles.save()
+      }
+    } else {
+      newFiles = new File({
+        ...files[0],
+        'original-name': files[0].originalname,
+        ext: files[0].mimetype,
+        name: files[0].filename
+      })
+      arrFiles.push(files[0].path)
+      newFiles.save()
+    }
+
+    await Task.findOneAndUpdate({ _id: id }, { filepath: arrFiles })
+
+    res.status(200).json({ success: 'Файл(ы) успешно загружен(ы)' })
+  } catch (err) {
+    res.status(500).json({ msg: err.message })
+  }
+}

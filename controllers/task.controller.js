@@ -17,4 +17,9 @@ exports.createTask = async (req, res) => {
   await saveNewTask(req.body, res)
 }
 
+exports.uploadFile = async (req, res) => {
+  const files = req.files
+  const { task_id } = req.body
 
+  await saveFilesForTask(files, task_id, res)
+}
