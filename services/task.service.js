@@ -12,14 +12,14 @@ exports.getEmployeesAndTasksById = async (data, res) => {
   const { _id, orgId } = data
 
   try {
-    const employee = await User.findOne({ _id }).select('department role organization tasks')
+    const employee = await User.findOne({ _id }).select('department role organization tasks name surname')
     const department = employee.department.name
 
     if (employee.role.code > 0) {
       const foundEmployees = await User.find({ department: { name: department }, organization: orgId })
       res.status(200).json({
         tasks: employee.tasks, employees: foundEmployees,
-        role: employee.role.code
+        role: employee.role.code, name: employee.name + ' ' + employee?.surname
       })
       return
     }
@@ -66,7 +66,7 @@ exports.saveNewTask = async (data, res) => {
     await User.findOneAndUpdate({ _id: userId }, { '$push': { tasks: newTask._id } }, { upsert: true })
     await newTask.save()
 
-    res.status(200).json({ success: 'Задача успешно сохранена', task: newTask._id })
+    res.status(200).json({ success: 'Задача успешно сохранена. Теперь Вы можете загруть файлы!', task: newTask._id })
   } catch (err) {
     res.status(500).json({ msg: err.message })
   }
