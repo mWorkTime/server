@@ -82,7 +82,7 @@ exports.saveNewTask = async (data, res) => {
 exports.saveFilesForTask = async (files, id, res) => {
   try {
     let newFiles
-    let arrFiles = []
+    let arrLinks = []
 
     if (files.length > 1) {
       for (let i = 0; i < files.length; i++) {
@@ -92,7 +92,7 @@ exports.saveFilesForTask = async (files, id, res) => {
           ext: files[i].mimetype,
           name: files[i].filename
         })
-        arrFiles.push(files[i].path)
+        arrLinks.push(files[i].path)
         newFiles.save()
       }
     } else {
@@ -102,11 +102,11 @@ exports.saveFilesForTask = async (files, id, res) => {
         ext: files[0].mimetype,
         name: files[0].filename
       })
-      arrFiles.push(files[0].path)
+      arrLinks.push(files[0].path)
       newFiles.save()
     }
 
-    await Task.findOneAndUpdate({ _id: id }, { filepath: arrFiles })
+    await Task.findOneAndUpdate({ _id: id }, { filepath: arrLinks })
 
     res.status(200).json({ success: 'Файл(ы) для задачи успешно загружен(ы)' })
   } catch (err) {

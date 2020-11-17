@@ -2,7 +2,7 @@ const express = require('express')
 const router = express.Router()
 const requireLogin = require('../middlewares/auth.middleware')
 const requirePermission = require('../middlewares/permission.middleware')
-const fileMiddleware = require('../middlewares/file')
+const fileMiddleware = require('../middlewares/file.middleware')
 
 const { getEmployeesAndTasks, getEmployeesByDepartment, uploadFile, createTask } = require('../controllers/task.controller')
 
