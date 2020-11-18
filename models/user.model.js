@@ -44,6 +44,7 @@ const userSchema = new Schema({
   isVerified: { type: Boolean, default: false },
   salt: String,
   tasks: [{ type: Types.ObjectId, ref: 'Task' }],
+  onReview: [{ type: Object }],
   resetPasswordLink: {
     data: String,
     default: ''

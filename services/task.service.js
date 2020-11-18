@@ -17,16 +17,25 @@ exports.getEmployeesAndTasksById = async (data, res) => {
     const employee = await User.findOne({ _id }).select('department role organization tasks name surname').populate('tasks')
     const department = employee.department.name
 
+    const foundEmployees = await User.find({ department: { name: department }, organization: orgId })
+    const managers = foundEmployees.reduce((acc, employee) => {
+      if (employee.role.code > 0 && !employee.isSacked) {
+        acc.push({ name: `${employee.name} ${employee.surname}`, id: employee._id })
+      }
+
+      return acc
+    }, [])
+
     if (employee.role.code > 0) {
-      const foundEmployees = await User.find({ department: { name: department }, organization: orgId })
       res.status(200).json({
         tasks: employee.tasks, employees: foundEmployees,
-        role: employee.role.code, name: employee.name + ' ' + employee?.surname
+        role: employee.role.code, name: employee.name + ' ' + employee?.surname,
+        managers
       })
       return
     }
 
-    res.status(200).json({ tasks: employee?.tasks })
+    res.status(200).json({ tasks: employee?.tasks, managers })
   } catch (err) {
     res.status(500).json({ msg: err.message })
   }
@@ -124,17 +133,75 @@ exports.saveFilesForTask = async (files, id, res) => {
  */
 exports.getFilesAndDownload = (_id, res) => {
   return Task.findOne({ _id }).exec((err, task) => {
-    if(err) {
+    if (err) {
       res.status(500).json({ msg: err.message })
       return
     }
 
-    const { filepath, name } = task
+    const { filepath } = task
     const files = filepath.reduce((acc, file) => {
       acc.push({ path: file, name: file.substr(6) })
       return acc
-    },[])
+    }, [])
 
     res.zip(files, `${crypto.pseudoRandomBytes(4).toString('hex')}.zip`)
   })
+}
+
+/**
+ * updateTaskStatusById.
+ * @param {string} id
+ * @param {number|string} status
+ * @param {object} res
+ * @return {*}
+ */
+exports.updateTaskStatusById = ({ id, status }, res) => {
+  return Task.findOneAndUpdate({ _id: id }, { status }, { new: true })
+    .exec((err, task) => {
+      if (err) {
+        res.status(500).json({ msg: err.message })
+        return
+      }
+
+      res.status(200).json({ success: 'Статус задачи успешно обновлён', task })
+    })
+}
+
+/**
+ * updateTaskStatusAndPutOnReview.
+ * @param {string} manager
+ * @param {string} taskId
+ * @param {object} res
+ * @return {*}
+ */
+exports.updateTaskStatusAndPutOnReview = async ({ manager, taskId }, res) => {
+  try {
+    const foundTask = await Task.findOneAndUpdate({ _id: taskId }, { status: 2 }, { new: true }).populate('user_id')
+
+    const task = {
+      id: foundTask._id,
+      isCompleted: foundTask.isCompleted,
+      status: foundTask.status,
+      isConfirmed: foundTask.isConfirmed,
+      runtime: foundTask.runtime,
+      filepath: foundTask.filepath,
+      name: foundTask.name,
+      desc: foundTask.desc,
+      priority: foundTask.priority,
+      createdBy: foundTask.createdBy,
+      createdAt: foundTask.createdAt,
+      updatedAt: foundTask.updatedAt,
+
+      employee: {
+        name: `${foundTask.user_id.name} ${foundTask.user_id?.surname}`,
+        email: foundTask.user_id.email
+      }
+    }
+
+    await User.findOneAndUpdate({ _id: manager }, { '$push': { onReview: task } }, { upsert: true })
+
+    res.status(200).json({ success: 'Задача успешно отправлена на проверку.' })
+  } catch (err) {
+    res.status(500).json({ msg: err.message })
+  }
 }
