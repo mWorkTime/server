@@ -12,9 +12,9 @@ exports.getEmployeesAndTasksById = async (data, res) => {
   const { _id, orgId } = data
 
   try {
-    const employee = await User.findOne({ _id }).select('department role organization tasks name surname')
+    const employee = await User.findOne({ _id }).select('department role organization tasks name surname').populate('tasks')
     const department = employee.department.name
-
+    
     if (employee.role.code > 0) {
       const foundEmployees = await User.find({ department: { name: department }, organization: orgId })
       res.status(200).json({
