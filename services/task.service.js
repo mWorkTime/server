@@ -1,6 +1,8 @@
 const User = require('../models/user.model')
 const Task = require('../models/task.model')
 const File = require('../models/file.model')
+const zip = require('express-zip')
+const crypto = require('crypto')
 
 /**
  * getUsersOrTasksById. Depending on the user's role to return either users or tasks
@@ -14,7 +16,7 @@ exports.getEmployeesAndTasksById = async (data, res) => {
   try {
     const employee = await User.findOne({ _id }).select('department role organization tasks name surname').populate('tasks')
     const department = employee.department.name
-    
+
     if (employee.role.code > 0) {
       const foundEmployees = await User.find({ department: { name: department }, organization: orgId })
       res.status(200).json({
@@ -112,4 +114,27 @@ exports.saveFilesForTask = async (files, id, res) => {
   } catch (err) {
     res.status(500).json({ msg: err.message })
   }
+}
+
+/**
+ * getFilesAndDownload. Download files by task id.
+ * @param {string} _id
+ * @param {object} res
+ * @return {*}
+ */
+exports.getFilesAndDownload = (_id, res) => {
+  return Task.findOne({ _id }).exec((err, task) => {
+    if(err) {
+      res.status(500).json({ msg: err.message })
+      return
+    }
+
+    const { filepath, name } = task
+    const files = filepath.reduce((acc, file) => {
+      acc.push({ path: file, name: file.substr(6) })
+      return acc
+    },[])
+
+    res.zip(files, `${crypto.pseudoRandomBytes(4).toString('hex')}.zip`)
+  })
 }

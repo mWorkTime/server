@@ -1,4 +1,4 @@
-const { getEmployeesAndTasksById, getEmployees, saveNewTask, saveFilesForTask } = require('../services/task.service')
+const { getEmployeesAndTasksById, getEmployees, saveNewTask, saveFilesForTask, getFilesAndDownload } = require('../services/task.service')
 
 exports.getEmployeesAndTasks = async (req, res) => {
   const { _id, orgId } = req.user
@@ -22,4 +22,9 @@ exports.uploadFile = async (req, res) => {
   const { task_id } = req.body
 
   await saveFilesForTask(files, task_id, res)
+}
+
+exports.downloadFiles = (req, res) => {
+  const { id } = req.params
+  getFilesAndDownload(id, res)
 }
