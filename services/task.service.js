@@ -179,7 +179,7 @@ exports.updateTaskStatusAndPutOnReview = async ({ manager, taskId }, res) => {
     const foundTask = await Task.findOneAndUpdate({ _id: taskId }, { status: 2 }, { new: true }).populate('user_id')
 
     const task = {
-      id: foundTask._id,
+      _id: foundTask._id,
       isCompleted: foundTask.isCompleted,
       status: foundTask.status,
       isConfirmed: foundTask.isConfirmed,
@@ -200,7 +200,7 @@ exports.updateTaskStatusAndPutOnReview = async ({ manager, taskId }, res) => {
 
     await User.findOneAndUpdate({ _id: manager }, { '$push': { onReview: task } }, { upsert: true })
 
-    res.status(200).json({ success: 'Задача успешно отправлена на проверку.' })
+    res.status(200).json({ success: 'Задача успешно отправлена на проверку.', task })
   } catch (err) {
     res.status(500).json({ msg: err.message })
   }
