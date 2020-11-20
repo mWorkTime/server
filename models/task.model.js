@@ -11,12 +11,7 @@ const taskSchema = new Schema({
   priority: { type: Number, required: true },
   user_id: { type: Types.ObjectId, ref: 'User' },
   filepath: Array,
-  comments: [{
-    key: { type: String },
-    createdBy: { type: String },
-    about: { type: String },
-    createdAt: { type: Date }
-  }]
+  comments: [{ type: Object }],
 }, { timestamps: true })
 
 module.exports = model('Task', taskSchema)
