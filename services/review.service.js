@@ -1,6 +1,7 @@
 const User = require('../models/user.model')
 const Task = require('../models/task.model')
 const ObjectId = require('mongoose').Types.ObjectId
+const crypto = require('crypto')
 
 /**
  * getAllTasksOnReviewById
@@ -34,4 +35,29 @@ exports.getTaskAndConfirm = async (data, res) => {
   } catch (err) {
     res.status(500).json({ msg: err.message })
   }
+}
+
+/**
+ * saveNewReviewComment.
+ * @param {object} data
+ * @param {object} res
+ * @return {*}
+ */
+exports.saveNewReviewComment = (data, res) => {
+  const { comment, taskId, createdBy } = data
+  const key = crypto.randomBytes(4).toString('hex')
+
+  const newComment = {
+    key, createdAt: new Date().toISOString(),
+    comment, createdBy
+  }
+
+  return Task.findOneAndUpdate({ _id: taskId }, { '$push': { comments: newComment } })
+    .exec((err) => {
+      if (err) {
+        res.status(500).json({ msg: err.message })
+      }
+
+      res.status(200).json({ success: 'Комментарий успешно добавлен. Загрузите файлы для него!',commentKey: key })
+    })
 }
