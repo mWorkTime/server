@@ -200,7 +200,7 @@ exports.updateTaskStatusAndPutOnReview = async ({ manager, taskId }, res) => {
 
     await User.findOneAndUpdate({ _id: manager }, { '$push': { onReview: task } }, { upsert: true })
 
-    res.status(200).json({ success: 'Задача успешно отправлена на проверку.', task })
+    res.status(200).json({ success: 'Напишите отчёт перейдя в \"Отчёты\". Задача была успешно отправлена на проверку!', task })
   } catch (err) {
     res.status(500).json({ msg: err.message })
   }
