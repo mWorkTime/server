@@ -29,8 +29,8 @@ exports.getAllTasksOnReviewById = (_id, res) => {
 exports.getTaskAndConfirm = async (data, res) => {
   const { userId, taskId } = data
   try {
-    await User.findOneAndUpdate({ _id: userId }, { $pull: { 'onReview': { _id: new ObjectId(taskId) } } })
-    const task = await Task.findOneAndUpdate({ _id: taskId }, { isConfirmed: true })
+    const user = await User.findOneAndUpdate({ _id: userId }, { $pull: { 'onReview': { _id: new ObjectId(taskId) } } })
+    const task = await Task.findOneAndUpdate({ _id: taskId }, { isConfirmed: true, confirmedBy: `${user.name} ${user.surname}` })
 
     res.status(200).json({ success: 'Задание успешно подтверждено!', id: task._id })
   } catch (err) {
@@ -63,6 +63,13 @@ exports.saveNewReviewComment = (data, res) => {
     })
 }
 
+/**
+ *
+ * @param {array} files
+ * @param {object} data
+ * @param {object} res
+ * @return {Promise<void>}
+ */
 exports.updateReviewComment = async (files, data, res) => {
   const { commentId, taskId, id } = data
 

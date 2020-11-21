@@ -18,6 +18,7 @@ const departmentRoutes = require('./routes/department.route')
 const roleRoutes = require('./routes/role.route')
 const taskRoutes = require('./routes/task.route')
 const reviewRoutes = require('./routes/review.route')
+const reportRoutes = require('./routes/report.route')
 
 // app
 const app = express()
@@ -48,6 +49,7 @@ app.use('/department', departmentRoutes)
 app.use('/role', roleRoutes)
 app.use('/task', taskRoutes)
 app.use('/review', reviewRoutes)
+app.use('/report', reportRoutes)
 
 // port
 const port = process.env.PORT || 5000
