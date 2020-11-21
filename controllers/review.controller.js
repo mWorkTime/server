@@ -1,4 +1,4 @@
-const { getAllTasksOnReviewById, getTaskAndConfirm, saveNewReviewComment } = require('../services/review.service')
+const { getAllTasksOnReviewById, getTaskAndConfirm, saveNewReviewComment, updateReviewComment } = require('../services/review.service')
 
 exports.getAllTasksOnReview = (req, res) => {
   const { _id } = req.user
@@ -15,6 +15,13 @@ exports.confirmReviewTask = async (req, res) => {
 
 exports.reviewComment = (req, res) => {
   const { comment, taskId, createdBy } = req.body
-  
+
   saveNewReviewComment({ comment, taskId, createdBy }, res)
+}
+
+exports.reviewCommentFiles = async (req, res) => {
+  const { comment_id, task_id } = req.body
+  const { _id } = req.user
+
+  await updateReviewComment(req.files, { commentId: comment_id, taskId: task_id, id: _id }, res)
 }
