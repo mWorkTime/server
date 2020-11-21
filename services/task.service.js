@@ -149,6 +149,37 @@ exports.getFilesAndDownload = (_id, res) => {
 }
 
 /**
+ * getCommentFiles. Looking for comments in task, gets files and return them to user.
+ * @param {object} data
+ * @param {object} res
+ * @return {*}
+ */
+exports.getCommentFiles = (data, res) => {
+  const { id, comment } = data
+  return Task.findOne({ _id: id }).exec((err, task) => {
+    if (err) {
+      res.status(500).json({ msg: err.message })
+      return
+    }
+
+    const commentIndex = task.comments.findIndex(({ key }) => key === comment)
+    const commentItem = task.comments[commentIndex]
+
+    if (commentItem && !commentItem.files) {
+      res.redirect(`${process.env.CLIENT_URL}/tasks`)
+      return
+    }
+
+    const files = commentItem.files.reduce((acc, file) => {
+      acc.push({ path: file, name: file.substr(6) })
+      return acc
+    }, [])
+
+    res.zip(files, `${crypto.pseudoRandomBytes(4).toString('hex')}.zip`)
+  })
+}
+
+/**
  * updateTaskStatusById.
  * @param {string} id
  * @param {number|string} status
@@ -200,7 +231,10 @@ exports.updateTaskStatusAndPutOnReview = async ({ manager, taskId }, res) => {
 
     await User.findOneAndUpdate({ _id: manager }, { '$push': { onReview: task } }, { upsert: true })
 
-    res.status(200).json({ success: 'Напишите отчёт перейдя в \"Отчёты\". Задача была успешно отправлена на проверку!', task })
+    res.status(200).json({
+      success: 'Напишите отчёт перейдя в \"Отчёты\". Задача была успешно отправлена на проверку!',
+      task
+    })
   } catch (err) {
     res.status(500).json({ msg: err.message })
   }

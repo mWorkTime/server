@@ -1,5 +1,5 @@
 const { getEmployeesAndTasksById, getEmployees, saveNewTask, saveFilesForTask, getFilesAndDownload,
-  updateTaskStatusById, updateTaskStatusAndPutOnReview } = require('../services/task.service')
+  updateTaskStatusById, updateTaskStatusAndPutOnReview, getCommentFiles } = require('../services/task.service')
 
 exports.getEmployeesAndTasks = async (req, res) => {
   const { _id, orgId } = req.user
@@ -28,6 +28,10 @@ exports.uploadFile = async (req, res) => {
 exports.downloadFiles = (req, res) => {
   const { id } = req.params
   getFilesAndDownload(id, res)
+}
+
+exports.commentFilesDownload = (req, res) => {
+  getCommentFiles(req.params, res)
 }
 
 exports.updateTaskStatus = (req, res) => {
