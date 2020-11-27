@@ -2,57 +2,24 @@ const { model, Schema, Types } = require('mongoose')
 const { hashedPassword } = require('../utils/hashed-password')
 
 const userSchema = new Schema({
-  name: {
-    type: String,
-    trim: true,
-    required: true,
-    max: 32
-  },
-  surname: {
-    type: String,
-    trim: true,
-    max: 32
-  },
-  email: {
-    type: String,
-    trim: true,
-    required: true,
-    unique: true,
-    lowercase: true
-  },
-  hashed_password: {
-    type: String,
-    required: true
+  name: { type: String, trim: true, required: true, max: 32 },
+  surname: { type: String, trim: true, max: 32 },
+  email: { type: String, trim: true, required: true, unique: true, lowercase: true },
+  hashed_password: { type: String, required: true
   },
   phone: String,
-  isOwner: {
-    type: Boolean,
-    required: true,
-    default: false
+  isOwner: { type: Boolean, required: true, default: false
   },
-  isSacked: {
-    type: Boolean,
-    required: true,
-    default: false
-  },
-  gender: {
-    type: String,
-    default: 'unknown'
-  },
+  isSacked: { type: Boolean, required: true, default: false },
+  gender: { type: String, default: 'unknown' },
   department: { type: Object },
   role: { type: Object },
   isVerified: { type: Boolean, default: false },
   salt: String,
   tasks: [{ type: Types.ObjectId, ref: 'Task' }],
   onReview: [{ type: Object }],
-  resetPasswordLink: {
-    data: String,
-    default: ''
-  },
-  organization: {
-    type: Types.ObjectId,
-    ref: 'Organization'
-  }
+  resetPasswordLink: { data: String, default: '' },
+  organization: { type: Types.ObjectId, ref: 'Organization' }
 }, { timestamps: true })
 
 userSchema.virtual('password')

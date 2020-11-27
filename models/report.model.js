@@ -6,7 +6,7 @@ const reportSchema = new Schema({
   total_time: { type: Number, required: true },
   break_time: { type: Number, required: true },
   description: { type: String, required: true },
-  report_files: Array
+  'report-files': Array
 })
 
 module.exports = model('Report', reportSchema)

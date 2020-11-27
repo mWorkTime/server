@@ -97,7 +97,7 @@ exports.saveFilesToReport = async (files, id, res) => {
       newFiles.save()
     }
 
-    await Report.findOneAndUpdate({ _id: id }, { report_files: arrLinks }, { safe: true })
+    await Report.findOneAndUpdate({ _id: id }, { 'report-files': arrLinks })
 
     res.status(200).json({ success: 'Файлы успешно загружены!' })
   } catch (err) {

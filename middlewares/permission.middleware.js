@@ -1,12 +1,22 @@
+const User = require('../models/user.model')
+
 module.exports = (req, res, next) => {
   if (req.method === 'OPTIONS') {
     return next()
   }
-  const { role } = req.user
+  const { _id } = req.user
 
-  if (role === 0) {
-    return res.status(400).json({ error: "У вас нету прав для совершения данной операции." })
-  }
+  User.findOne({ _id })
+    .exec((err, user) => {
+      if (err) {
+        res.status(500).json({ msg: err.message })
+        return
+      }
 
-  next()
+      if (user.role.code === 0) {
+        res.status(400).json({ error: 'У вас нету прав для совершения данной операции.' })
+        return
+      }
+      next()
+    })
 }
