@@ -17,6 +17,9 @@ module.exports = (req, res, next) => {
         res.status(400).json({ error: 'У вас нету прав для совершения данной операции.' })
         return
       }
+
+      req.user = {...req.user, role: user.role.code, department: user.department.name }
+
       next()
     })
 }

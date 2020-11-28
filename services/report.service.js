@@ -22,6 +22,67 @@ exports.getAllTasksByUserId = (userId, res) => {
 }
 
 /**
+ * getAllUsersByRole.
+ * @param {object} data
+ * @param {object} res
+ * @return {*}
+ */
+exports.getAllUsersByRole = async (data, res) => {
+  const { orgId, _id } = data
+
+  try {
+    const user = await User.findOne({ _id }).select('role department')
+
+    let foundUsers = {}
+    if (user.role.code && +user.role.code === 3) {
+      foundUsers = await User.find({ organization: orgId }).select('name surname')
+    }
+
+    if (user.role.code && +user.role.code > 0 && +user.role.code < 3) {
+      foundUsers = await User.find({ organization: orgId, department: { name: user.department.name } })
+    }
+
+    res.status(200).json({ users: foundUsers })
+  } catch (err) {
+    res.status(500).json({ msg: err.message })
+  }
+}
+
+/**
+ * getUserTasksById
+ * @param {string} _id
+ * @param {object} res
+ * @return {*}
+ */
+exports.getUserTasksById = (_id, res) => {
+  return User.findOne({ _id }).populate('tasks').exec((err, user) => {
+    if(err) {
+      res.status(500).json({ msg: err.message })
+      return
+    }
+
+    res.status(200).json({ user })
+  })
+}
+
+/**
+ * getTaskReportsById
+ * @param {string} _id
+ * @param {object} res
+ * @return {*}
+ */
+exports.getTaskReportsById = (_id, res) => {
+  return Task.findOne({ _id }).populate('reports').exec((err, task) => {
+    if(err) {
+      res.status(500).json({ msg: err.message })
+      return
+    }
+
+    res.status(200).json({ task })
+  })
+}
+
+/**
  * getTaskById.
  * @param {string} _id
  * @param {object} res

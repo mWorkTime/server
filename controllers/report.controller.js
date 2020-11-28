@@ -1,8 +1,20 @@
-const { getTaskById, getAllTasksByUserId, saveNewReport, saveFilesToReport } = require('../services/report.service')
+const { getTaskById, getAllTasksByUserId, saveNewReport, saveFilesToReport, getAllUsersByRole, getUserTasksById, getTaskReportsById } = require('../services/report.service')
 
 exports.getAllTasksForReport = (req, res) => {
   const { _id } = req.user
   getAllTasksByUserId(_id, res)
+}
+
+exports.getUsersByRoleCode = (req, res) => {
+  getAllUsersByRole(req.user, res)
+}
+
+exports.getUserTasks = (req, res) => {
+  getUserTasksById(req.body._id, res)
+}
+
+exports.getTaskReports = (req, res) => {
+  getTaskReportsById(req.body._id, res)
 }
 
 exports.getTask = (req, res) => {
